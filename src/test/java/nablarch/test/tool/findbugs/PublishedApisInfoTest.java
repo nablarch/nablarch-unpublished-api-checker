@@ -2,6 +2,7 @@ package nablarch.test.tool.findbugs;
 
 import edu.umd.cs.findbugs.BugAnnotation;
 import edu.umd.cs.findbugs.BugCollection;
+import edu.umd.cs.findbugs.BugInstance;
 import edu.umd.cs.findbugs.SourceLineAnnotation;
 import edu.umd.cs.findbugs.test.SpotBugsRule;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.AbnormalSuite;
@@ -23,6 +24,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
 
 import static nablarch.test.Assertion.fail;
@@ -641,29 +643,43 @@ public class PublishedApisInfoTest {
             // 過去資産についてはnablarch-unpublished-api-checker-findbugsのリポジトリ参照。
             try (final BufferedWriter writer = Files.newBufferedWriter(output)) {
                 StreamSupport.stream(bugCollection.spliterator(), false)
-                        // FindBugs版と出力順序が異なっていたためソースコード上の行番号でソート
-                        .sorted(Comparator.comparing(e -> {
-                            final List<? extends BugAnnotation> annotations = e.getAnnotations();
-                            for (BugAnnotation annotation : annotations) {
-                                if (annotation instanceof SourceLineAnnotation) {
-                                    return ((SourceLineAnnotation) annotation).getStartLine();
-                                }
-                            }
-                            return 0;
-                        }))
-                        .forEach(bugInstance -> {
-                            if ("UPU_UNPUBLISHED_API_USAGE".equals(bugInstance.getType())) {
-                                try {
-                                    writer.append(bugInstance.getMessageWithPriorityTypeAbbreviation());
-                                    writer.append("  ");
-                                    writer.append(bugInstance.getAnnotationsForMessage(true).get(0).toString());
-                                    writer.newLine();
-                                } catch (IOException e) {
-                                    fail(e);
-                                }
-                            }
-                        });
+                        .filter(this::isUnpublishedApiUsage)
+                        .sorted(BY_START_LINE)
+                        .map(this::formatBugInstance)
+                        .forEach(writeTo(writer));
             }
+        }
+
+        private boolean isUnpublishedApiUsage(BugInstance bugInstance) {
+            return "UPU_UNPUBLISHED_API_USAGE".equals(bugInstance.getType());
+        }
+
+        /** FindBugs版と出力順序が異なっていたためソースコード上の行番号でソート */
+        private static final Comparator<BugInstance> BY_START_LINE
+                = Comparator.comparing(bugInstance -> bugInstance.getAnnotations()
+                .stream()
+                .filter(it -> it instanceof SourceLineAnnotation)
+                .map(it -> (SourceLineAnnotation) it)
+                .map(SourceLineAnnotation::getStartLine)
+                .findFirst()
+                .orElse(0));
+
+        /** FindBugs版の出力に合わせてメッセージをフォーマット */
+        private String formatBugInstance(BugInstance bugInstance) {
+            return bugInstance.getMessageWithPriorityTypeAbbreviation() +
+                    "  " +
+                    bugInstance.getAnnotationsForMessage(true).get(0);
+        }
+
+        private Consumer<String> writeTo(BufferedWriter writer) {
+            return formattedText -> {
+                try {
+                    writer.write(formattedText);
+                    writer.write("\r\n");
+                } catch (IOException e) {
+                    fail(e);
+                }
+            };
         }
 
         /**
