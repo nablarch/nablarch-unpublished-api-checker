@@ -3,7 +3,6 @@ package nablarch.test.tool.findbugs;
 import edu.umd.cs.findbugs.BugInstance;
 import edu.umd.cs.findbugs.BugReporter;
 import edu.umd.cs.findbugs.BytecodeScanningDetector;
-import org.apache.bcel.Constants;
 import org.apache.bcel.classfile.Code;
 import org.apache.bcel.classfile.CodeException;
 import org.apache.bcel.classfile.Constant;
@@ -21,7 +20,7 @@ import static org.apache.bcel.Const.RET;
 
 /**
  * 非公開APIの使用を検出するfindbugsカスタムルールのdetector。
- * 
+ *
  * @author 香川朋和
  */
 public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
@@ -34,7 +33,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
     /**
      * コンストラクタ。
-     * 
+     *
      * @param bugReporter バグリポート
      */
     public UsageOfUnpublishedMethodDetector(final BugReporter bugReporter) {
@@ -49,8 +48,8 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
     /** finally節情報一覧。 */
     private List<FinallyClause> finallyClauses;
-    
-    /** finally節インデックス。 */ 
+
+    /** finally節インデックス。 */
     private int finallyIndex;
 
     /** JSRモードでコンパイルされているか否かを表す。 */
@@ -58,7 +57,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
     /**
      * メソッド定義毎に行う処理。
-     * 
+     *
      * @param code メソッド定義情報
      */
     public void visitCode(final Code code) {
@@ -110,7 +109,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
     /**
      * オペコード読み込み毎に行う処理。
-     * 
+     *
      * @param opecode オペコード
      */
     public void sawOpcode(final int opecode) {
@@ -120,7 +119,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
     /**
      * catch指定された例外が公開されているか否かをチェックする。
-     * 
+     *
      * @param opecode オペコード
      */
     private void checkUnpublishedApiException(final int opecode) {
@@ -167,7 +166,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
     /**
      * ConstantPoolから取得したクラス情報をフルパスのクラス名に修正したストリングを返す。
-     * 
+     *
      * @param exName 呼び出しAPIクラス名
      * @return ConstantPoolから取得したクラス情報をフルパスのクラス名に修正した文字列
      */
@@ -180,20 +179,20 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
     /**
      * 非公開API使用の情報を保存する。
-     * 
+     *
      * @param usedUnpublishedApi 使用されている非公開API名
      */
     private void doBugReport(String usedUnpublishedApi) {
         bugReporter.reportBug(new BugInstance(this, BUG_CODE, NORMAL_PRIORITY)
-                                    .addString(usedUnpublishedApi)
-                                    .addMethod(this)
-                                    .addClassAndMethod(this)
-                                    .addSourceLine(this));
+                .addString(usedUnpublishedApi)
+                .addMethod(this)
+                .addClassAndMethod(this)
+                .addSourceLine(this));
     }
 
     /**
      * finally句か否かの判定をする。
-     * 
+     *
      * @param currentPC 該当処理に対応するプログラムカウンタ
      * @return finally句内の場合、{@code true}
      */
@@ -212,7 +211,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
     /**
      * 指定したcatchTypeに該当する例外クラスの情報が書かれている、ConstantPool[]のインデックスを返す。
-     * 
+     *
      * @param catchType キャッチタイプ(ConstantPoolにおけるインデックス)
      * @return 指定したcatchTypeに該当する例外クラスの情報が書かれている、ConstantPool[]のインデックス
      */
@@ -235,13 +234,13 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
         /** 例外ハンドラの先頭を示すpcカウンタ。 */
         private int handlerPC;
-        
+
         /** チェックを行ったfinally節か否かを表す。 */
         private boolean check;
 
         /**
          * コンストラクタ。
-         * 
+         *
          * @param handlerPC 例外ハンドラの先頭を示すpcカウンタ
          */
         public FinallyClause(int handlerPC) {
@@ -251,7 +250,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
         /**
          * ハンドラpcカウンタを取得する。
-         * 
+         *
          * @return ハンドラpcカウンタ
          */
         public int getHandlerPC() {
@@ -260,7 +259,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
         /**
          * チェックを行ったか否かを設定する。
-         * 
+         *
          * @param check チェックを行ったか否かを示すboolean値
          */
         public void setCheck(final boolean check) {
@@ -269,7 +268,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
         /**
          * チェックを行ったfinally節か否かを返す。
-         * 
+         *
          * @return チェックを行ったfinally説である場合、{@code true}
          */
         public boolean isChecked() {
@@ -279,7 +278,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
     /**
      * 非公開APIのメソッドコールを検出し、報告する。
-     * 
+     *
      * @param opecode オペコード
      */
     private void checkUnpublishedApiMethodCall(final int opecode) {
@@ -300,14 +299,14 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
     /**
      * 指定されたオペコード値がメソッドコール命令であれば{@code true}を返す。
-     * 
+     *
      * @param opecode オペコード
      * @return 指定されたオペコード値がメソッドコール命令であれば{@code true}
      */
     private static boolean isInvocation(final int opecode) {
         return opecode == INVOKEVIRTUAL
-                        || opecode == INVOKEINTERFACE
-                        || opecode == INVOKESTATIC
-                        || opecode == INVOKESPECIAL;
+                || opecode == INVOKEINTERFACE
+                || opecode == INVOKESTATIC
+                || opecode == INVOKESPECIAL;
     }
 }

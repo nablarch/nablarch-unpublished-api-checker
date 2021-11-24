@@ -2,7 +2,6 @@ package nablarch.test.tool.findbugs;
 
 import edu.umd.cs.findbugs.BugAnnotation;
 import edu.umd.cs.findbugs.BugCollection;
-import edu.umd.cs.findbugs.BugInstance;
 import edu.umd.cs.findbugs.SourceLineAnnotation;
 import edu.umd.cs.findbugs.test.SpotBugsRule;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.AbnormalSuite;
@@ -16,10 +15,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,21 +26,20 @@ import java.util.List;
 import java.util.stream.StreamSupport;
 
 import static nablarch.test.Assertion.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertThat;
 
-// 順序によってテストが失敗する場合があるので、順序を明示的に指定。
-@RunWith(Suite.class)
-@SuiteClasses({NormalSuite.class, AbnormalSuite.class, UsageOfUnpublishedMethodDetector.class})
 /**
  * {@link PublishedApisInfo}のテスト
- * 
  * 使用しているfindbugsが1.3.9のため、java8には対応しておらずエラーが出ます。
  * java6、もしくはjava7で実行してください。
  * また、テストを実行する際はgradleのtestタスクで実行してください。
- * 
+ *
  * @author 香川朋和
  */
+// 順序によってテストが失敗する場合があるので、順序を明示的に指定。
+@RunWith(Suite.class)
+@SuiteClasses({NormalSuite.class, AbnormalSuite.class, UsageOfUnpublishedMethodDetector.class})
 public class PublishedApisInfoTest {
 
     private static final String CONFIG_FILE_PATH = "nablarch-findbugs-config";
@@ -131,7 +127,7 @@ public class PublishedApisInfoTest {
                     "nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass$OK", "isHoge", "()" +
                             "boolaen"));
 
-            // 許可リストにてぎされていないInnerクラス。
+            // 許可リストに定義されていないInnerクラス。
             Assert.assertFalse(PublishedApisInfo.isPermitted(
                     "nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass$NG", "<init>", "()V"));
         }
@@ -162,10 +158,10 @@ public class PublishedApisInfoTest {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/configread/twosettings");
             PublishedApisInfo.readConfigFiles();
             Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings" +
-                                                                    ".data.java.TestClass", "testMethod", "()V"));
+                    ".data.java.TestClass", "testMethod", "()V"));
             Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod2", "()V"));
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings" +
-                                                                     ".data.java.TestClass", "testMethod3", "()V"));
+                    ".data.java.TestClass", "testMethod3", "()V"));
         }
 
         /**
@@ -190,21 +186,21 @@ public class PublishedApisInfoTest {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/oneinterface");
             PublishedApisInfo.readConfigFiles();
             Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface",
-                                                            "test1InterfaceImple", "()V"));
+                    "test1InterfaceImple", "()V"));
         }
 
         /**
          * 記述のないインターフェースに対して、使用不許可となること
-         * 
+         *
          */
         @Test
         public void testIsPermittedSuperInterface() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/superinterface");
             PublishedApisInfo.readConfigFiles();
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceMethod",
-                                                             "()V"));
+                    "()V"));
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "subInterfaceMethod",
-                                                             "()V"));
+                    "()V"));
         }
 
         /**
@@ -217,13 +213,13 @@ public class PublishedApisInfoTest {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterface");
             PublishedApisInfo.readConfigFiles();
             Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
-                                                            "superPublishedInterfaceMethod", "()V"));
+                    "superPublishedInterfaceMethod", "()V"));
             Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
-                                                            "subPublishedInterfaceMethod", "()V"));
+                    "subPublishedInterfaceMethod", "()V"));
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
-                                                             "superUnpublishedInterfaceMethod", "()V"));
+                    "superUnpublishedInterfaceMethod", "()V"));
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
-                                                             "subUnpublishedInterfaceMethod", "()V"));
+                    "subUnpublishedInterfaceMethod", "()V"));
         }
 
         /**
@@ -287,7 +283,7 @@ public class PublishedApisInfoTest {
             PublishedApisInfo.readConfigFiles();
             try {
                 Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.NoExistingClass",
-                                                                "superInterfaceMethod", "()V"));
+                        "superInterfaceMethod", "()V"));
             } catch (RuntimeException e) {
                 Assert.assertEquals(
                         "Couldn't find JavaClass of itself or super class. ClassName=[nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.NoExistingClass]",
@@ -645,6 +641,7 @@ public class PublishedApisInfoTest {
             // 過去資産についてはnablarch-unpublished-api-checker-findbugsのリポジトリ参照。
             try (final BufferedWriter writer = Files.newBufferedWriter(output)) {
                 StreamSupport.stream(bugCollection.spliterator(), false)
+                        // FindBugs版と出力順序が異なっていたためソースコード上の行番号でソート
                         .sorted(Comparator.comparing(e -> {
                             final List<? extends BugAnnotation> annotations = e.getAnnotations();
                             for (BugAnnotation annotation : annotations) {
@@ -690,24 +687,12 @@ public class PublishedApisInfoTest {
          * @throws IOException ファイル入出力の際のエラー
          */
         private String getStringFromFile(String filePath) throws IOException {
-            BufferedReader reader = null;
-            try {
-                reader = new BufferedReader(new FileReader(new File(filePath)));
-
-                String line;
-                StringBuilder sb = new StringBuilder();
-                while ((line = reader.readLine()) != null) {
-                    sb.append(line);
-                    sb.append("\r\n");
-                }
-
-                return sb.toString();
-
-            } finally {
-                if (reader != null) {
-                    reader.close();
-                }
-            }
+            StringBuilder sb = new StringBuilder();
+            Files.lines(Paths.get(filePath)).forEach(line -> {
+                sb.append(line);
+                sb.append("\r\n");
+            });
+            return sb.toString();
         }
     }
 }
