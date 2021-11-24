@@ -19,6 +19,7 @@ import org.junit.runners.Suite.SuiteClasses;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -703,12 +704,7 @@ public class PublishedApisInfoTest {
          * @throws IOException ファイル入出力の際のエラー
          */
         private String getStringFromFile(String filePath) throws IOException {
-            StringBuilder sb = new StringBuilder();
-            Files.lines(Paths.get(filePath)).forEach(line -> {
-                sb.append(line);
-                sb.append("\r\n");
-            });
-            return sb.toString();
+            return String.join("\r\n", Files.readAllLines(Paths.get(filePath), StandardCharsets.UTF_8));
         }
     }
 }
