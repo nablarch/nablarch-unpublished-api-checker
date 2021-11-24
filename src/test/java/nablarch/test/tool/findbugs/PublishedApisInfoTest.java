@@ -1,21 +1,32 @@
 package nablarch.test.tool.findbugs;
 
-import edu.umd.cs.findbugs.FindBugs;
-import edu.umd.cs.findbugs.FindBugs2;
-import edu.umd.cs.findbugs.TextUICommandLine;
+import edu.umd.cs.findbugs.BugAnnotation;
+import edu.umd.cs.findbugs.BugCollection;
+import edu.umd.cs.findbugs.BugInstance;
+import edu.umd.cs.findbugs.SourceLineAnnotation;
+import edu.umd.cs.findbugs.test.SpotBugsRule;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.AbnormalSuite;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.NormalSuite;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.UsageOfUnpublishedMethodDetector;
 import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.StreamSupport;
 
 import static nablarch.test.Assertion.fail;
 import static org.hamcrest.Matchers.containsString;
@@ -334,6 +345,15 @@ public class PublishedApisInfoTest {
 
         private static final String CONFIG_FILE_PATH = "nablarch-findbugs-config";
 
+        @Rule
+        public SpotBugsRule spotbugs = new SpotBugsRule();
+
+        @Before
+        public void setUpSpotBugsRule() {
+            spotbugs.addAuxClasspathEntry(Paths.get("src/test/java/nablarch/test/tool/findbugs/data/jsrbin/"));
+            spotbugs.addAuxClasspathEntry(Paths.get("src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/"));
+        }
+
         /**
          * 以下の動作を確認する。
          * ・コンストラクタ、メソッド単位で公開非公開を設定した場合
@@ -609,26 +629,44 @@ public class PublishedApisInfoTest {
         /**
          * FindBugsの実行を行う。
          *
-         * @param args コマンドライン引数
          * @throws IOException 処理実行中の例外
-         * @throws InterruptedException 処理実行中の例外
          */
-        private void doFindBugs(String outputFile, String classForCheck) throws IOException, InterruptedException {
+        private void doFindBugs(String outputFile, String classForCheck) throws IOException {
+            Path path = Paths.get(classForCheck);
+            Path output = Paths.get(outputFile);
 
-            String[] args = new String[7];
-            args[0] = "-include";
-            args[1] = "src/test/java/nablarch-findbugs-include.xml";
-            args[2] = "-output";
-            args[3] = outputFile;
-            args[4] = "-auxclasspath";
-            args[5] = "src/test/java/nablarch/test/tool/findbugs/data/jsrbin/"
-                    + File.pathSeparator
-                    + "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/" + File.pathSeparator;
-            args[6] = classForCheck;
-            FindBugs2 findBugs = new FindBugs2();
-            TextUICommandLine commandLine = new TextUICommandLine();
-            FindBugs.processCommandLine(commandLine, args, findBugs);
-            findBugs.execute();
+            BugCollection bugCollection = spotbugs.performAnalysis(path);
+
+            // BugCollectionのassertはテキストファイルに出力して期待されるテキストファイルとの検証を行っている。
+            // 本来であればBugCollectionに対してassertするようなコードを書くべきであるが、過去資産を流用するため
+            // テキストファイルでの検証としている。
+            // 元々FindBugsで実装されていた単体テストで-outputオプションで出力したテキストファイルの検証を行っており
+            // その検証に用意されていた期待されるテキストファイルをSpotBugs版の単体テストに流用するためにこのような手法を取っている。
+            // 過去資産についてはnablarch-unpublished-api-checker-findbugsのリポジトリ参照。
+            try (final BufferedWriter writer = Files.newBufferedWriter(output)) {
+                StreamSupport.stream(bugCollection.spliterator(), false)
+                        .sorted(Comparator.comparing(e -> {
+                            final List<? extends BugAnnotation> annotations = e.getAnnotations();
+                            for (BugAnnotation annotation : annotations) {
+                                if (annotation instanceof SourceLineAnnotation) {
+                                    return ((SourceLineAnnotation) annotation).getStartLine();
+                                }
+                            }
+                            return 0;
+                        }))
+                        .forEach(bugInstance -> {
+                            if ("UPU_UNPUBLISHED_API_USAGE".equals(bugInstance.getType())) {
+                                try {
+                                    writer.append(bugInstance.getMessageWithPriorityTypeAbbreviation());
+                                    writer.append("  ");
+                                    writer.append(bugInstance.getAnnotationsForMessage(true).get(0).toString());
+                                    writer.newLine();
+                                } catch (IOException e) {
+                                    fail(e);
+                                }
+                            }
+                        });
+            }
         }
 
         /**
