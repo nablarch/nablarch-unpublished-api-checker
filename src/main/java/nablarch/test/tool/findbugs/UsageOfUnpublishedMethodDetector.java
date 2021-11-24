@@ -85,7 +85,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
             return;
         }
 
-        String[] throwsExceptions = methodSig.substring(index + 7).split(",");
+        String[] throwsExceptions = methodSig.substring(index + "throws Exceptions:".length()).split(",");
         for (String exName : throwsExceptions) {
             exName = exName.trim();
             if (!PublishedApisInfo.isPermitted(exName)) {
