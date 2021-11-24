@@ -3,7 +3,7 @@
 <FindbugsPlugin>
 
     <!-- Detector -->
-    <Detector class="nablarch.test.tool.findbugs.UsageOfUnpublishedMethodDetector" speed="fast" />
+    <Detector class="nablarch.test.tool.findbugs.UsageOfUnpublishedMethodDetector" reports="UPU_UNPUBLISHED_API_USAGE" speed="fast" />
 
     <!-- BugPattern -->
     <BugPattern abbrev="UPU" type="UPU_UNPUBLISHED_API_USAGE" category="CORRECTNESS" />

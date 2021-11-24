@@ -11,6 +11,14 @@ import org.apache.bcel.classfile.Constant;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.apache.bcel.Const.ATHROW;
+import static org.apache.bcel.Const.INVOKEINTERFACE;
+import static org.apache.bcel.Const.INVOKESPECIAL;
+import static org.apache.bcel.Const.INVOKESTATIC;
+import static org.apache.bcel.Const.INVOKEVIRTUAL;
+import static org.apache.bcel.Const.JSR;
+import static org.apache.bcel.Const.RET;
+
 /**
  * 非公開APIの使用を検出するfindbugsカスタムルールのdetector。
  * 
@@ -297,9 +305,9 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
      * @return 指定されたオペコード値がメソッドコール命令であれば{@code true}
      */
     private static boolean isInvocation(final int opecode) {
-        return opecode == Constants.INVOKEVIRTUAL
-                        || opecode == Constants.INVOKEINTERFACE
-                        || opecode == Constants.INVOKESTATIC
-                        || opecode == Constants.INVOKESPECIAL;
+        return opecode == INVOKEVIRTUAL
+                        || opecode == INVOKEINTERFACE
+                        || opecode == INVOKESTATIC
+                        || opecode == INVOKESPECIAL;
     }
 }
