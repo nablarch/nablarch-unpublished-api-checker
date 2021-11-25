@@ -43,8 +43,8 @@ public final class PublishedApisInfo {
      */
     static void readConfigFiles() {
 
-        publishedMethodAndConstructorSet = new HashSet<String>();
-        publishedPackageOrClassSet = new HashSet<String>();
+        publishedMethodAndConstructorSet = new HashSet<>();
+        publishedPackageOrClassSet = new HashSet<>();
         String configDirPath = System.getProperty("nablarch-findbugs-config");
         
         File configDir = new File(configDirPath);

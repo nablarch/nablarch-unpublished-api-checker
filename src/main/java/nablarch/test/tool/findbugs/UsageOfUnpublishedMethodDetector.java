@@ -99,7 +99,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
      */
     private void loadFinallyClauses() {
 
-        finallyClauses = new ArrayList<FinallyClause>();
+        finallyClauses = new ArrayList<>();
         for (CodeException ex : codeExceptions) {
             // catchType が0の場合は finally句
             if (ex.getCatchType() == 0) {
