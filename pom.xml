@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.nablarch.framework</groupId>
+  <artifactId>nablarch-unpublished-api-checker</artifactId>
+  <version>5-NEXT-SNAPSHOT</version>
+
+  <scm>
+    <connection>scm:git:git://github.com/nablarch/${project.artifactId}.git</connection>
+    <developerConnection>scm:git:git://github.com/nablarch/${project.artifactId}.git</developerConnection>
+    <url>https://github.com/nablarch/${project.artifactId}/tree/master</url>
+  </scm>
+
+  <parent>
+    <groupId>com.nablarch</groupId>
+    <artifactId>nablarch-parent</artifactId>
+    <version>5-NEXT-SNAPSHOT</version>
+    <relativePath/>
+  </parent>
+
+  <properties>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <spotBugsVersion>4.5.0</spotBugsVersion>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>spotbugs</artifactId>
+      <version>${spotBugsVersion}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>test-harness</artifactId>
+      <version>${spotBugsVersion}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.nablarch.framework</groupId>
+      <artifactId>nablarch-testing</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>xml-maven-plugin</artifactId>
+        <version>1.0.2</version>
+        <executions>
+          <execution>
+            <id>validate-spotbugs-configuration</id>
+            <goals>
+              <goal>validate</goal>
+            </goals>
+            <configuration>
+              <validationSets>
+                <validationSet>
+                  <dir>src/main/resources</dir>
+                  <includes>
+                    <include>findbugs.xml</include>
+                  </includes>
+                  <systemId>findbugsplugin.xsd</systemId>
+                </validationSet>
+                <validationSet>
+                  <dir>src/main/resources</dir>
+                  <includes>
+                    <include>messages.xml</include>
+                    <include>messages_ja.xml</include>
+                  </includes>
+                  <systemId>messagecollection.xsd</systemId>
+                </validationSet>
+              </validationSets>
+            </configuration>
+          </execution>
+        </executions>
+        <dependencies>
+          <dependency>
+            <groupId>com.github.spotbugs</groupId>
+            <artifactId>spotbugs</artifactId>
+            <version>${spotBugsVersion}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
+  </build>
+</project>

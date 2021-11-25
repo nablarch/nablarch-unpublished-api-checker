@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<MessageCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:noNamespaceSchemaLocation="messagecollection.xsd">
+
+    <Plugin>
+        <ShortDescription>Nablarch unpublished api checker</ShortDescription>
+        <Details>業務非公開APIの利用を検出する。</Details>
+    </Plugin>
+
+    <!-- Detector -->
+    <Detector class="nablarch.test.tool.findbugs.UsageOfUnpublishedMethodDetector">
+        <Details>
+          業務非公開APIの利用を検出する。
+        </Details>
+    </Detector>
+
+    <BugPattern type="UPU_UNPUBLISHED_API_USAGE">
+        <ShortDescription>公開されていないAPIが使用されています。</ShortDescription>
+        <LongDescription>公開されていないAPI[{0}]が{1}にて使用されています。</LongDescription>
+        <Details>
+            <![CDATA[
+            <p> このAPIは公開されていません。 </p>
+            ]]>
+        </Details>
+    </BugPattern>
+
+    <BugCode abbrev="UPU">業務非公開APIの利用を検出しました。</BugCode>
+</MessageCollection>

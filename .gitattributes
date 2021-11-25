@@ -1,0 +1,4 @@
+# CSVはCRLFとLFが混在するのでバイナリ扱いにする
+*.csv    -text
+*.txt    -text
+
