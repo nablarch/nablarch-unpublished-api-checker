@@ -52,11 +52,7 @@ public final class PublishedApisInfo {
             throw new RuntimeException("Config file directory doesn't exist.Path=[" + configDirPath + "]");
         }
 
-        File[] configFiles = configDir.listFiles(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.endsWith(".config");
-            }
-        });
+        File[] configFiles = configDir.listFiles((dir, name) -> name.endsWith(".config"));
 
         for (File configFile : configFiles) {
             readConfigFile(configFile);
