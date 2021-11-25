@@ -23,7 +23,7 @@ import static org.apache.bcel.Const.RET;
  *
  * @author 香川朋和
  */
-public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
+public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector { // NOSONAR 継承ツリーが深いという警告が出るがDetector実装に必要な継承のため警告抑止
 
     /** バグコード。 */
     static final String BUG_CODE = "UPU_UNPUBLISHED_API_USAGE";
@@ -60,6 +60,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
      *
      * @param code メソッド定義情報
      */
+    @Override
     public void visitCode(final Code code) {
 
         checkUnpublishedExceptionAtThrows();
@@ -87,7 +88,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
         String[] throwsExceptions = methodSig.substring(index + "throws Exceptions:".length()).split(",");
         for (String exName : throwsExceptions) {
             exName = exName.trim();
-            if (!PublishedApisInfo.isPermitted(exName)) {
+            if (PublishedApisInfo.isProhibited(exName)) {
                 doBugReport(exName);
             }
         }
@@ -98,7 +99,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
      */
     private void loadFinallyClauses() {
 
-        finallyClauses = new ArrayList<FinallyClause>();
+        finallyClauses = new ArrayList<>();
         for (CodeException ex : codeExceptions) {
             // catchType が0の場合は finally句
             if (ex.getCatchType() == 0) {
@@ -112,6 +113,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
      *
      * @param opecode オペコード
      */
+    @Override
     public void sawOpcode(final int opecode) {
         checkUnpublishedApiMethodCall(opecode);
         checkUnpublishedApiException(opecode);
@@ -135,7 +137,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
 
                 int nameIndex = getCatchTypeIndex(codeException.getCatchType());
                 String exName = formatClassName(constants[nameIndex].toString()).replace('/', '.');
-                if (!PublishedApisInfo.isPermitted(exName)) {
+                if (PublishedApisInfo.isProhibited(exName)) {
                     doBugReport(exName);
                 }
             }
@@ -172,8 +174,8 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
      */
     private static String formatClassName(String exName) {
 
-        int beginIndex = exName.indexOf("\"") + 1;
-        int endIndex = exName.lastIndexOf("\"");
+        int beginIndex = exName.indexOf('\"') + 1;
+        int endIndex = exName.lastIndexOf('\"');
         return exName.substring(beginIndex, endIndex).trim();
     }
 
@@ -220,8 +222,8 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
         int index = -1;
 
         String nameIndex = constants[catchType].toString();
-        int beginIndex = nameIndex.indexOf("=");
-        int endIndex = nameIndex.lastIndexOf(")");
+        int beginIndex = nameIndex.indexOf('=');
+        int endIndex = nameIndex.lastIndexOf(')');
         index = Integer.parseInt((nameIndex.substring(beginIndex + 1, endIndex)).trim());
 
         return index;

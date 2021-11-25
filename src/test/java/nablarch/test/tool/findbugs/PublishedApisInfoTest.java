@@ -5,6 +5,8 @@ import edu.umd.cs.findbugs.BugCollection;
 import edu.umd.cs.findbugs.BugInstance;
 import edu.umd.cs.findbugs.SourceLineAnnotation;
 import edu.umd.cs.findbugs.test.SpotBugsRule;
+import mockit.Expectations;
+import mockit.Mocked;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.AbnormalSuite;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.NormalSuite;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.UsageOfUnpublishedMethodDetector;
@@ -16,6 +18,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -335,6 +338,28 @@ public class PublishedApisInfoTest {
                 PublishedApisInfo.readConfigFiles();
             } catch (RuntimeException e) {
                 Assert.assertEquals("Config file directory doesn't exist.Path=[src/test/java/nablarch/test/tool/findbugs/expected/settingsTest.txt]", e.getMessage());
+            }
+        }
+
+        private static final String FS = File.separator;
+
+        /**
+         * 設定ファイル読み込み中にIOExceptionが発生した場合、例外が発生すること。
+         * また、例外のメッセージから、設定の問題箇所を判断できること。
+         */
+        @Test
+        public void testReadConfigFiles_IOException(@Mocked final BufferedReader reader) throws IOException {
+            new Expectations() {{
+                reader.readLine();
+                result = new IOException();
+            }};
+            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterface");
+            try {
+                PublishedApisInfo.readConfigFiles();
+                fail();
+            } catch (RuntimeException e) {
+                assertThat(e.getMessage(), containsString("Couldn't read config file."));
+                assertThat(e.getMessage(), containsString(new File("src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterface").toString()));
             }
         }
     }

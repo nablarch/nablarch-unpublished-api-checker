@@ -6,9 +6,7 @@ import org.apache.bcel.classfile.Method;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -17,7 +15,7 @@ import java.util.Set;
 
 /**
  * 公開APIの情報を保持する。
- * 
+ *
  * @author 香川朋和
  */
 public final class PublishedApisInfo {
@@ -43,20 +41,16 @@ public final class PublishedApisInfo {
      */
     static void readConfigFiles() {
 
-        publishedMethodAndConstructorSet = new HashSet<String>();
-        publishedPackageOrClassSet = new HashSet<String>();
+        publishedMethodAndConstructorSet = new HashSet<>();
+        publishedPackageOrClassSet = new HashSet<>();
         String configDirPath = System.getProperty("nablarch-findbugs-config");
-        
+
         File configDir = new File(configDirPath);
         if (!configDir.exists() || !configDir.isDirectory()) {
             throw new RuntimeException("Config file directory doesn't exist.Path=[" + configDirPath + "]");
         }
 
-        File[] configFiles = configDir.listFiles(new FilenameFilter() {
-            public boolean accept(File dir, String name) {
-                return name.endsWith(".config");
-            }
-        });
+        File[] configFiles = configDir.listFiles((dir, name) -> name.endsWith(".config"));
 
         for (File configFile : configFiles) {
             readConfigFile(configFile);
@@ -65,14 +59,11 @@ public final class PublishedApisInfo {
 
     /**
      * 各設定ファイルを読み込む。
-     * 
+     *
      * @param configFile 設定ファイル
      */
     private static void readConfigFile(File configFile) {
-
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader(configFile));
+        try (BufferedReader reader = new BufferedReader(new FileReader(configFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 // 「(」が存在すれば、メソッド指定公開
@@ -82,26 +73,14 @@ public final class PublishedApisInfo {
                     publishedPackageOrClassSet.add(line);
                 }
             }
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(
-                    "Couldn't find config file. Path=[" + configFile + "]", e);
         } catch (IOException e) {
             throw new RuntimeException(
                     "Couldn't read config file. Path=[" + configFile + "]", e);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed in closing config file. Path=[" + configFile + "]", e);
-                }
-            }
         }
     }
 
     /**
      * Innerクラスのコンストラクタ呼出を置き換える。
-     *
      * Innerクラスの場合、許可ファイルに{@code xx.xxx.xxxx.Hoge.InnerHoge.Hoge.InnerHoge()}のように
      * コンストラクタ名が「内部クラスが定義されたクラス名 + "." + コンストラクタ」となっている。
      * これを{@code xx.xxx.xxxx.Hoge.InnerHoge.InnerHoge()}のように、「内部クラス名 + "." + コンストラクタ」に置き換える。
@@ -138,10 +117,10 @@ public final class PublishedApisInfo {
 
     /**
      * 呼び出されたメソッド・コンストラクタが公開されているか否かをチェックする。<br/>
-     * 
-     * @param calleeClassName 呼び出されたAPIのクラス名
+     *
+     * @param calleeClassName  呼び出されたAPIのクラス名
      * @param calleeMethodName 呼び出されたAPIのメソッド名
-     * @param calleeMethodSig 呼び出されたAPIメソッドシグネチャ
+     * @param calleeMethodSig  呼び出されたAPIメソッドシグネチャ
      * @return 指定したメソッドが公開されている場合、{@code true}
      */
     static boolean isPermitted(String calleeClassName, String calleeMethodName, String calleeMethodSig) {
@@ -163,21 +142,21 @@ public final class PublishedApisInfo {
     }
 
     /**
-     * 指定したクラスが公開されているか否かをチェックする。
-     * 
+     * 指定したクラスが使用禁止されているか否かをチェックする。
+     *
      * @param calleeClassName チェック対象クラス名
-     * @return 指定したクラスが公開されている場合、{@code true}
+     * @return 指定したクラスが使用禁止されている場合、{@code true}
      */
-    static boolean isPermitted(String calleeClassName) {
-        return checkForClassOrPackage(calleeClassName.replace('$', '.'));
+    static boolean isProhibited(String calleeClassName) {
+        return !checkForClassOrPackage(calleeClassName.replace('$', '.'));
     }
 
     /**
      * 呼び出されたメソッド・コンストラクタが公開されているか否かをチェックする。
-     * 
-     * @param calleeJavaClass 呼び出されたAPIのクラス情報
+     *
+     * @param calleeJavaClass  呼び出されたAPIのクラス情報
      * @param calleeMethodName 呼び出されたAPIのメソッド名
-     * @param calleeMethodSig 呼び出されたAPIのシグネチャ
+     * @param calleeMethodSig  呼び出されたAPIのシグネチャ
      * @return 呼び出されたメソッド・コンストラクタが公開されている場合、{@code true}
      * @throws ClassNotFoundException 親クラス情報を取得できない場合に発生する。
      */
@@ -185,7 +164,7 @@ public final class PublishedApisInfo {
             throws ClassNotFoundException {
 
         // ")"以後には戻り値の型が記述されているが、以後考慮しないため、切り捨てる。
-        calleeMethodSig = calleeMethodSig.substring(0, calleeMethodSig.indexOf(")") + 1);
+        calleeMethodSig = calleeMethodSig.substring(0, calleeMethodSig.indexOf(')') + 1);
         Method method = getMethodOf(calleeJavaClass, calleeMethodName, calleeMethodSig);
         if (method != null) {
             // privateメソッドチェックしない
@@ -203,9 +182,9 @@ public final class PublishedApisInfo {
      * calleeJavaClassがcalleeMethodNameAndSigで表されるメソッドを有する場合、そのメソッド情報を保持する{@link Method}を返却する。<br/>
      * 該当するメソッドがcalleeJavaClassになければ、{@code null}を返却する。
      *
-     * @param calleeJavaClass チェック対象のクラス情報を保持する{@link JavaClass}
+     * @param calleeJavaClass  チェック対象のクラス情報を保持する{@link JavaClass}
      * @param calleeMethodName 呼出APIメソッド名
-     * @param calleeMethodSig 呼出APIシグネチャ
+     * @param calleeMethodSig  呼出APIシグネチャ
      * @return calleeJavaClassがcalleeMethodNameAndSigで表されるメソッドを有する場合、そのメソッド情報を保持する{@link Method}
      */
     private static Method getMethodOf(JavaClass calleeJavaClass, String calleeMethodName, String calleeMethodSig) {
@@ -213,8 +192,8 @@ public final class PublishedApisInfo {
         calleeMethodSig = calleeMethodSig.replace('.', '/');
         Method[] methods = calleeJavaClass.getMethods();
         for (Method method : methods) {
-            String methodNameAndSig = new StringBuilder(method.getName()).append(method.getSignature()).toString();
-            if (methodNameAndSig.startsWith(new StringBuilder(calleeMethodName).append(calleeMethodSig).toString())) {
+            String methodNameAndSig = method.getName() + method.getSignature();
+            if (methodNameAndSig.startsWith(calleeMethodName + calleeMethodSig)) {
                 return method;
             }
         }
@@ -224,9 +203,9 @@ public final class PublishedApisInfo {
     /**
      * 当該のクラスレベルにてメソッドが公開されているかをチェックする。
      *
-     * @param calleeJavaClass チェック対象のクラス情報を保持する{@link JavaClass}
+     * @param calleeJavaClass  チェック対象のクラス情報を保持する{@link JavaClass}
      * @param calleeMethodName 呼出APIメソッド名
-     * @param calleeMethodSig 呼出APIシグネチャ
+     * @param calleeMethodSig  呼出APIシグネチャ
      * @return 当該のクラスレベルにてメソッドが公開されている場合{@code true}
      */
     private static boolean checkPublicityForTheClass(JavaClass calleeJavaClass, String calleeMethodName, String calleeMethodSig) {
@@ -241,7 +220,7 @@ public final class PublishedApisInfo {
 
     /**
      * クラスレベル・パッケージレベルで公開されているか否かをチェックする。
-     * 
+     *
      * @param calleeJavaClass チェック対象クラス名
      * @return クラスレベル・パッケージレベルで公開されている場合、{@code true}
      */
@@ -265,13 +244,13 @@ public final class PublishedApisInfo {
 
     /**
      * 呼び出されたクラス自身が当該のメソッドを有しない場合、スーパークラスとインタフェースレベルにて公開されているか否かをチェックする。
-     * 
-     * @param calleeJavaClass 呼び出されたクラスの情報を保持する{@link JavaClass}
+     *
+     * @param calleeJavaClass  呼び出されたクラスの情報を保持する{@link JavaClass}
      * @param calleeMethodName 呼出APIメソッド名
-     * @param calleeMethodSig 呼出APIシグネチャ
+     * @param calleeMethodSig  呼出APIシグネチャ
      * @return スーパークラスまたはインタフェースレベルにて公開されていれば{@code true}
      * @throws ClassNotFoundException 親クラスの{@link JavaClass}
-     * を取得できない場合に発生する。この例外が発生する場合は、クラスパス設定を確認すること。
+     *                                を取得できない場合に発生する。この例外が発生する場合は、クラスパス設定を確認すること。
      */
     private static boolean checkSuperClassOrInterface(JavaClass calleeJavaClass, String calleeMethodName, String calleeMethodSig)
             throws ClassNotFoundException {
@@ -286,9 +265,7 @@ public final class PublishedApisInfo {
         // インタフェースに対して親クラスのチェックは行わない。
         if (!calleeJavaClass.isInterface()) {
             JavaClass superClass = calleeJavaClass.getSuperClass();
-            if (superClass != null && isPermittedForClassOrInterface(superClass, calleeMethodName, calleeMethodSig)) {
-                return true;
-            }
+            return superClass != null && isPermittedForClassOrInterface(superClass, calleeMethodName, calleeMethodSig);
         }
 
         return false;
@@ -297,44 +274,39 @@ public final class PublishedApisInfo {
     /**
      * 呼び出されたAPIの名称を得る。<br/>
      * classファイルフォーマットで記述されたパラメータを設定ファイルの形式に合うよう、Javaファイルフォーマットに変換する。
-     * 
-     * @param calleeClassName 呼び出されたAPIのクラス名
+     *
+     * @param calleeClassName  呼び出されたAPIのクラス名
      * @param calleeMethodName 呼出APIメソッド名
-     * @param calleeMethodSig 呼出APIシグネチャ
+     * @param calleeMethodSig  呼出APIシグネチャ
      * @return Javaファイルフォーマットにて記述された被呼出API
      */
     static String getCalleeApi(String calleeClassName, String calleeMethodName, String calleeMethodSig) {
 
-        String parameter = calleeMethodSig.substring(calleeMethodSig.indexOf("(") + 1, calleeMethodSig.lastIndexOf(")"));
+        String parameter = calleeMethodSig.substring(calleeMethodSig.indexOf('(') + 1, calleeMethodSig.lastIndexOf(')'));
 
         // コンストラクタ対応
         if ("<init>".equals(calleeMethodName)) {
-            if (calleeClassName.indexOf("$") != -1) {
-                calleeMethodName = calleeClassName.substring(calleeClassName.lastIndexOf("$") + 1);
+            if (calleeClassName.indexOf('$') != -1) {
+                calleeMethodName = calleeClassName.substring(calleeClassName.lastIndexOf('$') + 1);
             } else {
-                calleeMethodName = calleeClassName.substring(calleeClassName.lastIndexOf(".") + 1);
+                calleeMethodName = calleeClassName.substring(calleeClassName.lastIndexOf('.') + 1);
             }
         }
 
-        StringBuilder calleeApi = new StringBuilder(calleeClassName);
-        calleeApi.append(".");
-        calleeApi.append(calleeMethodName);
-        calleeApi.append(getParsedParameter(parameter));
-        return calleeApi.toString();
+        return calleeClassName + "." +
+                calleeMethodName +
+                getParsedParameter(parameter);
     }
 
     /**
      * Classファイルのフォーマットで記述されているパラメータをJavaファイルのファーマットに変換する。<br>
      * 変換ルールはJava仮想マシン仕様 4.3.2「フィールド・ディスクリプタ」を参照。
-     * 
      * <pre>
      * 例：)
      * Ljava.lang.String;B[ID → (java.lang.String,byte,int[],double)
      * Ljava.io.File;[[JSS    → (java.io.File,long[][],short,short)
      * </pre>
-     * 
      * Classファイルのフォーマットとの対応は、下記のとおりである。
-     * 
      * <pre>
      * L"classname"; : クラスclassnameのインスタンス
      * [             : 配列次元（1次元分）複数次元の場合は次元数分"["を記述する。
@@ -347,9 +319,8 @@ public final class PublishedApisInfo {
      * S             : short
      * Z             : boolean
      * </pre>
-     * 
-     * @param beforeParameter
-     *            クラスファイルフォーマットのパラメータ
+     *
+     * @param beforeParameter クラスファイルフォーマットのパラメータ
      * @return Javaファイルフォーマットのパラメータ
      */
     private static String getParsedParameter(String beforeParameter) {
@@ -366,41 +337,41 @@ public final class PublishedApisInfo {
             }
 
             switch (beforeParameter.charAt(i)) {
-            case 'B':
-                parameter.append("byte");
-                break;
-            case 'C':
-                parameter.append("char");
-                break;
-            case 'D':
-                parameter.append("double");
-                break;
-            case 'F':
-                parameter.append("float");
-                break;
-            case 'I':
-                parameter.append("int");
-                break;
-            case 'J':
-                parameter.append("long");
-                break;
-            case 'L':
-                int refenceEnd = beforeParameter.indexOf(";", i);
-                String reference = beforeParameter.substring(i + 1, refenceEnd);
-                i = refenceEnd;
-                parameter.append(reference);
-                break;
-            case 'S':
-                parameter.append("short");
-                break;
-            case 'Z':
-                parameter.append("boolean");
-                break;
-            case '[':
-                inArray = true;
-                arrayCount++;
-                break;
-            default:
+                case 'B':
+                    parameter.append("byte");
+                    break;
+                case 'C':
+                    parameter.append("char");
+                    break;
+                case 'D':
+                    parameter.append("double");
+                    break;
+                case 'F':
+                    parameter.append("float");
+                    break;
+                case 'I':
+                    parameter.append("int");
+                    break;
+                case 'J':
+                    parameter.append("long");
+                    break;
+                case 'L':
+                    int referenceEnd = beforeParameter.indexOf(';', i);
+                    String reference = beforeParameter.substring(i + 1, referenceEnd);
+                    i = referenceEnd;
+                    parameter.append(reference);
+                    break;
+                case 'S':
+                    parameter.append("short");
+                    break;
+                case 'Z':
+                    parameter.append("boolean");
+                    break;
+                case '[':
+                    inArray = true;
+                    arrayCount++;
+                    break;
+                default:
             }
 
             if (inArray && beforeParameter.charAt(i) != '[') {
