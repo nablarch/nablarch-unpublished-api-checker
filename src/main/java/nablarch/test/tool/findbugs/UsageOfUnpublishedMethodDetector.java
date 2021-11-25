@@ -60,6 +60,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
      *
      * @param code メソッド定義情報
      */
+    @Override
     public void visitCode(final Code code) {
 
         checkUnpublishedExceptionAtThrows();
@@ -112,6 +113,7 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
      *
      * @param opecode オペコード
      */
+    @Override
     public void sawOpcode(final int opecode) {
         checkUnpublishedApiMethodCall(opecode);
         checkUnpublishedApiException(opecode);
