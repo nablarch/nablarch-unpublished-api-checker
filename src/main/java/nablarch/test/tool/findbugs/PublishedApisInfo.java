@@ -185,7 +185,7 @@ public final class PublishedApisInfo {
             throws ClassNotFoundException {
 
         // ")"以後には戻り値の型が記述されているが、以後考慮しないため、切り捨てる。
-        calleeMethodSig = calleeMethodSig.substring(0, calleeMethodSig.indexOf(")") + 1);
+        calleeMethodSig = calleeMethodSig.substring(0, calleeMethodSig.indexOf(')') + 1);
         Method method = getMethodOf(calleeJavaClass, calleeMethodName, calleeMethodSig);
         if (method != null) {
             // privateメソッドチェックしない
@@ -305,14 +305,14 @@ public final class PublishedApisInfo {
      */
     static String getCalleeApi(String calleeClassName, String calleeMethodName, String calleeMethodSig) {
 
-        String parameter = calleeMethodSig.substring(calleeMethodSig.indexOf("(") + 1, calleeMethodSig.lastIndexOf(")"));
+        String parameter = calleeMethodSig.substring(calleeMethodSig.indexOf('(') + 1, calleeMethodSig.lastIndexOf(')'));
 
         // コンストラクタ対応
         if ("<init>".equals(calleeMethodName)) {
-            if (calleeClassName.indexOf("$") != -1) {
-                calleeMethodName = calleeClassName.substring(calleeClassName.lastIndexOf("$") + 1);
+            if (calleeClassName.indexOf('$') != -1) {
+                calleeMethodName = calleeClassName.substring(calleeClassName.lastIndexOf('$') + 1);
             } else {
-                calleeMethodName = calleeClassName.substring(calleeClassName.lastIndexOf(".") + 1);
+                calleeMethodName = calleeClassName.substring(calleeClassName.lastIndexOf('.') + 1);
             }
         }
 
@@ -385,9 +385,9 @@ public final class PublishedApisInfo {
                 parameter.append("long");
                 break;
             case 'L':
-                int refenceEnd = beforeParameter.indexOf(";", i);
-                String reference = beforeParameter.substring(i + 1, refenceEnd);
-                i = refenceEnd;
+                int referenceEnd = beforeParameter.indexOf(';', i);
+                String reference = beforeParameter.substring(i + 1, referenceEnd);
+                i = referenceEnd;
                 parameter.append(reference);
                 break;
             case 'S':

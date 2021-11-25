@@ -172,8 +172,8 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
      */
     private static String formatClassName(String exName) {
 
-        int beginIndex = exName.indexOf("\"") + 1;
-        int endIndex = exName.lastIndexOf("\"");
+        int beginIndex = exName.indexOf('\"') + 1;
+        int endIndex = exName.lastIndexOf('\"');
         return exName.substring(beginIndex, endIndex).trim();
     }
 
@@ -220,8 +220,8 @@ public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
         int index = -1;
 
         String nameIndex = constants[catchType].toString();
-        int beginIndex = nameIndex.indexOf("=");
-        int endIndex = nameIndex.lastIndexOf(")");
+        int beginIndex = nameIndex.indexOf('=');
+        int endIndex = nameIndex.lastIndexOf(')');
         index = Integer.parseInt((nameIndex.substring(beginIndex + 1, endIndex)).trim());
 
         return index;
