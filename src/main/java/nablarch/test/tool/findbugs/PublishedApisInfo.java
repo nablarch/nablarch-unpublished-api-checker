@@ -65,14 +65,11 @@ public final class PublishedApisInfo {
 
     /**
      * 各設定ファイルを読み込む。
-     * 
+     *
      * @param configFile 設定ファイル
      */
     private static void readConfigFile(File configFile) {
-
-        BufferedReader reader = null;
-        try {
-            reader = new BufferedReader(new FileReader(configFile));
+        try (BufferedReader reader = new BufferedReader(new FileReader(configFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 // 「(」が存在すれば、メソッド指定公開
@@ -88,14 +85,6 @@ public final class PublishedApisInfo {
         } catch (IOException e) {
             throw new RuntimeException(
                     "Couldn't read config file. Path=[" + configFile + "]", e);
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException e) {
-                    throw new RuntimeException("Failed in closing config file. Path=[" + configFile + "]", e);
-                }
-            }
         }
     }
 
