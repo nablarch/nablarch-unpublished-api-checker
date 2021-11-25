@@ -23,7 +23,7 @@ import static org.apache.bcel.Const.RET;
  *
  * @author 香川朋和
  */
-public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector {
+public class UsageOfUnpublishedMethodDetector extends BytecodeScanningDetector { // NOSONAR 継承ツリーが深いという警告が出るがDetector実装に必要な継承のため警告抑止
 
     /** バグコード。 */
     static final String BUG_CODE = "UPU_UNPUBLISHED_API_USAGE";
