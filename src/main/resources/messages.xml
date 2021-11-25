@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<MessageCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:noNamespaceSchemaLocation="messagecollection.xsd">
 
-<MessageCollection>
+    <Plugin>
+        <ShortDescription>Nablarch unpublished api checker</ShortDescription>
+        <Details>This plugin provides original detector.</Details>
+    </Plugin>
 
     <!-- Detector -->
-
-    <Detector
-        class="nablarch.test.tool.findbugs.UsageOfUnpublishedMethodDetector">
+    <Detector class="nablarch.test.tool.findbugs.UsageOfUnpublishedMethodDetector">
         <Details>
-        <![CDATA[
-        <p> This detector finds unpublished API usage.<p>
-        ]]>
+          This detector finds unpublished API usage.
         </Details>
     </Detector>
 
@@ -18,9 +19,9 @@
         <LongDescription>Unpublished API [{0}] is used at {1}.
         </LongDescription>
         <Details>
-      <![CDATA[
-      <p> This method is unpublished API </p>
-      ]]>
+            <![CDATA[
+            <p> This method is unpublished API </p>
+            ]]>
         </Details>
     </BugPattern>
 
