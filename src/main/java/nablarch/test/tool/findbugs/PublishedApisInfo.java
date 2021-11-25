@@ -79,9 +79,6 @@ public final class PublishedApisInfo {
                     publishedPackageOrClassSet.add(line);
                 }
             }
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(
-                    "Couldn't find config file. Path=[" + configFile + "]", e);
         } catch (IOException e) {
             throw new RuntimeException(
                     "Couldn't read config file. Path=[" + configFile + "]", e);
