@@ -152,13 +152,13 @@ public final class PublishedApisInfo {
     }
 
     /**
-     * 指定したクラスが公開されているか否かをチェックする。
-     * 
+     * 指定したクラスが使用禁止されているか否かをチェックする。
+     *
      * @param calleeClassName チェック対象クラス名
-     * @return 指定したクラスが公開されている場合、{@code true}
+     * @return 指定したクラスが使用禁止されている場合、{@code true}
      */
-    static boolean isPermitted(String calleeClassName) {
-        return checkForClassOrPackage(calleeClassName.replace('$', '.'));
+    static boolean isProhibited(String calleeClassName) {
+        return !checkForClassOrPackage(calleeClassName.replace('$', '.'));
     }
 
     /**
