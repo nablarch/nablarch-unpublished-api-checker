@@ -265,9 +265,7 @@ public final class PublishedApisInfo {
         // インタフェースに対して親クラスのチェックは行わない。
         if (!calleeJavaClass.isInterface()) {
             JavaClass superClass = calleeJavaClass.getSuperClass();
-            if (superClass != null && isPermittedForClassOrInterface(superClass, calleeMethodName, calleeMethodSig)) {
-                return true;
-            }
+            return superClass != null && isPermittedForClassOrInterface(superClass, calleeMethodName, calleeMethodSig);
         }
 
         return false;
