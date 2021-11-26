@@ -358,7 +358,7 @@ public final class PublishedApisInfo {
                 case 'L':
                     int referenceEnd = beforeParameter.indexOf(';', i);
                     String reference = beforeParameter.substring(i + 1, referenceEnd);
-                    i = referenceEnd;
+                    i = referenceEnd; // NOSONAR for文内でカウンタ変数を更新すると警告が出るがclassname分カウンタを進める必要があるので警告抑止
                     parameter.append(reference);
                     break;
                 case 'S':
