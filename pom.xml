@@ -24,8 +24,20 @@
   <properties>
     <maven.compiler.target>1.8</maven.compiler.target>
     <maven.compiler.source>1.8</maven.compiler.source>
-    <spotBugsVersion>4.8.3</spotBugsVersion>
+    <spotBugsVersion>4.8.0</spotBugsVersion>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.junit</groupId>
+        <artifactId>junit-bom</artifactId>
+        <version>5.8.2</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
@@ -42,14 +54,26 @@
     </dependency>
     <dependency>
       <groupId>com.nablarch.framework</groupId>
-      <artifactId>nablarch-testing</artifactId>
+      <artifactId>nablarch-testing-junit5</artifactId>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>com.github.spotbugs</groupId>
+      <artifactId>test-harness-jupiter</artifactId>
+      <version>${spotBugsVersion}</version>
+    </dependency>
+
     <dependency>
       <groupId>org.jmockit</groupId>
       <artifactId>jmockit</artifactId>
       <scope>test</scope>
     </dependency>
+
   </dependencies>
 
   <build>

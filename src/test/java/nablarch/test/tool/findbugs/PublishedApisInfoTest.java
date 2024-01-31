@@ -4,19 +4,24 @@ import edu.umd.cs.findbugs.BugAnnotation;
 import edu.umd.cs.findbugs.BugCollection;
 import edu.umd.cs.findbugs.BugInstance;
 import edu.umd.cs.findbugs.SourceLineAnnotation;
-import edu.umd.cs.findbugs.test.SpotBugsRule;
+//import edu.umd.cs.findbugs.test.SpotBugsRunner;
+import edu.umd.cs.findbugs.test.SpotBugsExtension;
+import edu.umd.cs.findbugs.test.SpotBugsRunner;
 import mockit.Expectations;
 import mockit.Mocked;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.AbnormalSuite;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.NormalSuite;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.UsageOfUnpublishedMethodDetector;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.ClassOrderer;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.TestClassOrder;
+import org.junit.jupiter.api.TestInstance;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -44,8 +49,8 @@ import static org.hamcrest.Matchers.containsString;
  * @author 香川朋和
  */
 // 順序によってテストが失敗する場合があるので、順序を明示的に指定。
-@RunWith(Suite.class)
-@SuiteClasses({NormalSuite.class, AbnormalSuite.class, UsageOfUnpublishedMethodDetector.class})
+@ExtendWith(SpotBugsExtension.class)
+@TestClassOrder(ClassOrderer.OrderAnnotation.class)
 public class PublishedApisInfoTest {
 
     private static final String CONFIG_FILE_PATH = "nablarch-findbugs-config";
@@ -54,7 +59,10 @@ public class PublishedApisInfoTest {
      * 正常系のテストケース。
      * （こちらが先に実行されないとテストが失敗する。）
      */
-    public static class NormalSuite {
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    @Order(1)
+    public class NormalSuite {
 
         /**
          * コンフィグファイルに何も記述されていない場合、
@@ -65,12 +73,12 @@ public class PublishedApisInfoTest {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/configread/onesetting0record");
 
             PublishedApisInfo.readConfigFiles();
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod", "()V"));
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod2", "()V"));
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod3", "()V"));
+            Assertions.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod", "()V"));
+            Assertions.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod2", "()V"));
+            Assertions.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod3", "()V"));
 
             //カバレッジ用に、スーパークラスを持たない、非公開なクラスを読み込ませる
-            Assert.assertFalse(PublishedApisInfo.isPermitted(
+            Assertions.assertFalse(PublishedApisInfo.isPermitted(
                     "nablarch.test.tool.findbugs.data.setting.method.unpublishedpackage.UnpublishedPackage",
                     "unpublishedPackageTest1", "()V"));
         }
@@ -83,9 +91,9 @@ public class PublishedApisInfoTest {
         public void testReadConfigsNoFile() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/configread/nosettings");
             PublishedApisInfo.readConfigFiles();
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod", "()V"));
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod2", "()V"));
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod3", "()V"));
+            Assertions.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod", "()V"));
+            Assertions.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod2", "()V"));
+            Assertions.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod3", "()V"));
         }
 
         /**
@@ -96,9 +104,9 @@ public class PublishedApisInfoTest {
         public void testReadConfigs1File1Record() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/configread/onesetting1record");
             PublishedApisInfo.readConfigFiles();
-            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod", "()V"));
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod2", "()V"));
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod3", "()V"));
+            Assertions.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod", "()V"));
+            Assertions.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod2", "()V"));
+            Assertions.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod3", "()V"));
         }
 
         /**
@@ -110,9 +118,9 @@ public class PublishedApisInfoTest {
         public void testReadConfigs1File2Record() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/configread/onesetting2record");
             PublishedApisInfo.readConfigFiles();
-            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod", "()V"));
-            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod2", "()V"));
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod3", "()V"));
+            Assertions.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod", "()V"));
+            Assertions.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod2", "()V"));
+            Assertions.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod3", "()V"));
         }
 
         /**
@@ -125,16 +133,16 @@ public class PublishedApisInfoTest {
             PublishedApisInfo.readConfigFiles();
 
             // 許可リストに定義されているInnerクラス。
-            Assert.assertTrue(PublishedApisInfo.isPermitted(
+            Assertions.assertTrue(PublishedApisInfo.isPermitted(
                     "nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass$OK", "<init>", "()V"));
-            Assert.assertTrue(PublishedApisInfo.isPermitted(
+            Assertions.assertTrue(PublishedApisInfo.isPermitted(
                     "nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass$OK", "<init>", "([Ljava/lang/String;)V"));
-            Assert.assertTrue(PublishedApisInfo.isPermitted(
+            Assertions.assertTrue(PublishedApisInfo.isPermitted(
                     "nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass$OK", "isHoge", "()" +
                             "boolaen"));
 
             // 許可リストに定義されていないInnerクラス。
-            Assert.assertFalse(PublishedApisInfo.isPermitted(
+            Assertions.assertFalse(PublishedApisInfo.isPermitted(
                     "nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass$NG", "<init>", "()V"));
         }
 
@@ -147,11 +155,11 @@ public class PublishedApisInfoTest {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/configread/innerClass2");
             PublishedApisInfo.readConfigFiles();
 
-            Assert.assertTrue(PublishedApisInfo.isPermitted(
+            Assertions.assertTrue(PublishedApisInfo.isPermitted(
                     "nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass$OK", "<init>", "()V"));
-            Assert.assertTrue(PublishedApisInfo.isPermitted(
+            Assertions.assertTrue(PublishedApisInfo.isPermitted(
                     "nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass$OK", "<init>", "([Ljava/lang/String;)V"));
-            Assert.assertTrue(PublishedApisInfo.isPermitted(
+            Assertions.assertTrue(PublishedApisInfo.isPermitted(
                     "nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass$NG", "<init>", "()V"));
         }
 
@@ -163,10 +171,10 @@ public class PublishedApisInfoTest {
         public void testReadConfigs2Files() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/configread/twosettings");
             PublishedApisInfo.readConfigFiles();
-            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings" +
+            Assertions.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings" +
                     ".data.java.TestClass", "testMethod", "()V"));
-            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod2", "()V"));
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings" +
+            Assertions.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod2", "()V"));
+            Assertions.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings" +
                     ".data.java.TestClass", "testMethod3", "()V"));
         }
 
@@ -178,9 +186,9 @@ public class PublishedApisInfoTest {
         public void testReadConfigsPackage() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/configread/packaze");
             PublishedApisInfo.readConfigFiles();
-            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod", "()V"));
-            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod2", "()V"));
-            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod3", "()V"));
+            Assertions.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod", "()V"));
+            Assertions.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod2", "()V"));
+            Assertions.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod3", "()V"));
         }
 
         /**
@@ -191,7 +199,7 @@ public class PublishedApisInfoTest {
         public void testIsPermitted1Interface() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/oneinterface");
             PublishedApisInfo.readConfigFiles();
-            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface",
+            Assertions.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface",
                     "test1InterfaceImple", "()V"));
         }
 
@@ -203,9 +211,9 @@ public class PublishedApisInfoTest {
         public void testIsPermittedSuperInterface() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/superinterface");
             PublishedApisInfo.readConfigFiles();
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceMethod",
+            Assertions.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceMethod",
                     "()V"));
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "subInterfaceMethod",
+            Assertions.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "subInterfaceMethod",
                     "()V"));
         }
 
@@ -218,13 +226,13 @@ public class PublishedApisInfoTest {
         public void testIsPermittedSubInterface() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterface");
             PublishedApisInfo.readConfigFiles();
-            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
+            Assertions.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
                     "superPublishedInterfaceMethod", "()V"));
-            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
+            Assertions.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
                     "subPublishedInterfaceMethod", "()V"));
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
+            Assertions.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
                     "superUnpublishedInterfaceMethod", "()V"));
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
+            Assertions.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
                     "subUnpublishedInterfaceMethod", "()V"));
         }
 
@@ -236,7 +244,7 @@ public class PublishedApisInfoTest {
             System.setProperty(CONFIG_FILE_PATH,
                     "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/parameter/convert");
             PublishedApisInfo.readConfigFiles();
-            Assert.assertTrue(PublishedApisInfo
+            Assertions.assertTrue(PublishedApisInfo
                     .isPermitted(
                             "nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.parameter.convert.ParameterConvert",
                             "testParameterConvert",
@@ -253,7 +261,7 @@ public class PublishedApisInfoTest {
             System.setProperty(CONFIG_FILE_PATH,
                     "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/superclass");
             PublishedApisInfo.readConfigFiles();
-            Assert.assertTrue(PublishedApisInfo.isPermitted(
+            Assertions.assertTrue(PublishedApisInfo.isPermitted(
                     "nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Sub", "testSuper",
                     "()V"));
         }
@@ -266,7 +274,7 @@ public class PublishedApisInfoTest {
         public void testIsPermittedPrivateMethod() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/");
             PublishedApisInfo.readConfigFiles();
-            Assert.assertTrue(PublishedApisInfo.isPermitted(
+            Assertions.assertTrue(PublishedApisInfo.isPermitted(
                     "nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "privateMethod",
                     "()V"));
         }
@@ -277,7 +285,10 @@ public class PublishedApisInfoTest {
      * 異常系テストケース。
      * こちらを後に実行しないと、{@link PublishedApisInfo}のstatic initializerでエラーになる。
      */
-    public static class AbnormalSuite {
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    @Order(2)
+    public class AbnormalSuite {
 
         /**
          * 読み込むJavaクラスが見つからない場合
@@ -288,10 +299,10 @@ public class PublishedApisInfoTest {
 
             PublishedApisInfo.readConfigFiles();
             try {
-                Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.NoExistingClass",
+                Assertions.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.NoExistingClass",
                         "superInterfaceMethod", "()V"));
             } catch (RuntimeException e) {
-                Assert.assertEquals(
+                Assertions.assertEquals(
                         "Couldn't find JavaClass of itself or super class. ClassName=[nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.NoExistingClass]",
                         e.getMessage());
             }
@@ -323,7 +334,7 @@ public class PublishedApisInfoTest {
                 System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/configread/notexsitingdir");
                 PublishedApisInfo.readConfigFiles();
             } catch (RuntimeException e) {
-                Assert.assertEquals("Config file directory doesn't exist.Path=[src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/configread/notexsitingdir]", e.getMessage());
+                Assertions.assertEquals("Config file directory doesn't exist.Path=[src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/configread/notexsitingdir]", e.getMessage());
             }
         }
 
@@ -337,17 +348,17 @@ public class PublishedApisInfoTest {
                 System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/expected/settingsTest.txt");
                 PublishedApisInfo.readConfigFiles();
             } catch (RuntimeException e) {
-                Assert.assertEquals("Config file directory doesn't exist.Path=[src/test/java/nablarch/test/tool/findbugs/expected/settingsTest.txt]", e.getMessage());
+                Assertions.assertEquals("Config file directory doesn't exist.Path=[src/test/java/nablarch/test/tool/findbugs/expected/settingsTest.txt]", e.getMessage());
             }
         }
 
-        private static final String FS = File.separator;
+        private final String FS = File.separator;
 
         /**
          * 設定ファイル読み込み中にIOExceptionが発生した場合、例外が発生すること。
          * また、例外のメッセージから、設定の問題箇所を判断できること。
          */
-        @Test
+        @ParameterizedTest
         public void testReadConfigFiles_IOException(@Mocked final BufferedReader reader) throws IOException {
             new Expectations() {{
                 reader.readLine();
@@ -365,17 +376,19 @@ public class PublishedApisInfoTest {
     }
 
 
-    public static class UsageOfUnpublishedMethodDetector {
+    @Nested
+    @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+    @Order(3)
+    public class UsageOfUnpublishedMethodDetector {
 
         private static final String CONFIG_FILE_PATH = "nablarch-findbugs-config";
 
-        @Rule
-        public SpotBugsRule spotbugs = new SpotBugsRule();
 
-        @Before
-        public void setUpSpotBugsRule() {
-            spotbugs.addAuxClasspathEntry(Paths.get("src/test/java/nablarch/test/tool/findbugs/data/jsrbin/"));
-            spotbugs.addAuxClasspathEntry(Paths.get("src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/"));
+
+        @BeforeEach
+        public void setUpSpotBugsRule(SpotBugsRunner spotbugs) {
+            spotbugs.addAuxClasspathEntry(null, Paths.get("src/test/java/nablarch/test/tool/findbugs/data/jsrbin/"));
+            spotbugs.addAuxClasspathEntry(null, Paths.get("src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/"));
         }
 
         /**
@@ -393,12 +406,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testSettings() throws Exception {
+        public void testSettings(SpotBugsRunner spotbugs) throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/settings/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/settingTest.txt";
-            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/settings/Caller.class");
+            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/settings/Caller.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/settingsTest.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -421,12 +434,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testMethodCall() throws Exception {
+        public void testMethodCall(SpotBugsRunner spotbugs) throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/methodcall/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/methodCallTest.txt";
-            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/Caller.class");
+            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/Caller.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/methodCallTest.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -444,12 +457,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testMethodCallInNonMethod() throws Exception {
+        public void testMethodCallInNonMethod(SpotBugsRunner spotbugs) throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/methodcall/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/methodCallInNonMethodTest.txt";
-            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation.class");
+            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/methodCallInNonMethodTest.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -458,12 +471,12 @@ public class PublishedApisInfoTest {
          * 無名クラスを読み込ませた際の動作を確認する。
          */
         @Test
-        public void testMethodCallInAnonymousClass() throws Exception {
+        public void testMethodCallInAnonymousClass(SpotBugsRunner spotbugs) throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/methodcall/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/methodCallInAnnonymousClass.txt";
-            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation$1.class");
+            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation$1.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/methodCallInAnnonymousClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -473,12 +486,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testMethodCallInLocalClass() throws Exception {
+        public void testMethodCallInLocalClass(SpotBugsRunner spotbugs) throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/methodcall/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/methodCallInLocalClass.txt";
-            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation$1Local.class");
+            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation$1Local.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/methodCallInLocalClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -488,12 +501,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testMethodCallInInnerClass() throws Exception {
+        public void testMethodCallInInnerClass(SpotBugsRunner spotbugs) throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/methodcall/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/methodCallInInnerClass.txt";
-            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation$Inner.class");
+            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation$Inner.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/methodCallInInnerClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -504,12 +517,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testMethodCallInSubClass() throws Exception {
+        public void testMethodCallInSubClass(SpotBugsRunner spotbugs) throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/methodcall/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/methodCallInSubClass.txt";
-            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/inherit/method/ClassC.class");
+            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/inherit/method/ClassC.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/methodCallInSubClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -526,12 +539,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testExceptionsTopLevelClass() throws Exception {
+        public void testExceptionsTopLevelClass(SpotBugsRunner spotbugs) throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/exception/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/exceptionTopLevelClass.txt";
-            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller.class");
+            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/exceptionTopLevelClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -542,12 +555,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testExceptionsInnerClass() throws Exception {
+        public void testExceptionsInnerClass(SpotBugsRunner spotbugs) throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/exception/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/exceptionInnerClass.txt";
-            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller$InnerClass.class");
+            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller$InnerClass.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/exceptionInnerClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -558,12 +571,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testExceptionsLocalClass() throws Exception {
+        public void testExceptionsLocalClass(SpotBugsRunner spotbugs) throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/exception/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/exceptionTest.txt";
-            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller$1LocalClass.class");
+            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller$1LocalClass.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/exceptionLocalClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -574,12 +587,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testExceptionsAnonymousClass() throws Exception {
+        public void testExceptionsAnonymousClass(SpotBugsRunner spotbugs) throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/exception/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/exceptionAnnonymousClass.txt";
-            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller$1.class");
+            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller$1.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/exceptionAnnonymousClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -591,12 +604,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testExceptionsJsrMode() throws Exception {
+        public void testExceptionsJsrMode(SpotBugsRunner spotbugs) throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/exception/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/exceptionJsrMode.txt";
-            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/jsrbin/nablarch/test/tool/findbugs/data/exception/Caller.class");
+            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/jsrbin/nablarch/test/tool/findbugs/data/exception/Caller.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/exceptionJsrMode.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -608,12 +621,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testExceptionsJava6() throws Exception {
+        public void testExceptionsJava6(SpotBugsRunner spotbugs) throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/exception/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/exceptionJaba6.txt";
-            doFindBugs(outputFile,
+            doFindBugs(spotbugs, outputFile,
                     "src/test/java/nablarch/test/tool/findbugs/data/compilejava1.6/nablarch/test/tool/findbugs/data/exception/Caller.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/exceptionJava6.txt", outputFile);
             deleteFile(outputFile);
@@ -633,12 +646,12 @@ public class PublishedApisInfoTest {
          * </ul>
          */
         @Test
-        public void testInnerExceptionClass() throws Exception {
+        public void testInnerExceptionClass(SpotBugsRunner spotbugs) throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/exception/settings2");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/exceptionInnerExceptionClass.txt";
-            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/CallerForExceptionInnerClass.class");
+            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/CallerForExceptionInnerClass.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/exceptionInnerExceptionClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -655,7 +668,7 @@ public class PublishedApisInfoTest {
          *
          * @throws IOException 処理実行中の例外
          */
-        private void doFindBugs(String outputFile, String classForCheck) throws IOException {
+        private void doFindBugs(SpotBugsRunner spotbugs, String outputFile, String classForCheck) throws IOException {
             Path path = Paths.get(classForCheck);
             Path output = Paths.get(outputFile);
 
@@ -681,7 +694,7 @@ public class PublishedApisInfoTest {
         }
 
         /** FindBugs版と出力順序が異なっていたためソースコード上の行番号でソート */
-        private static final Comparator<BugInstance> BY_START_LINE
+        private final Comparator<BugInstance> BY_START_LINE
                 = Comparator.comparing(bugInstance -> bugInstance.getAnnotations()
                 .stream()
                 .filter(it -> it instanceof SourceLineAnnotation)
@@ -718,7 +731,7 @@ public class PublishedApisInfoTest {
         private void assertFiles(String expectedFilePath, String actualFilePath) throws IOException {
             String expectedString = getStringFromFile(expectedFilePath);
             String actualString = getStringFromFile(actualFilePath);
-            Assert.assertEquals(expectedString, actualString);
+            Assertions.assertEquals(expectedString, actualString);
         }
 
         /**
