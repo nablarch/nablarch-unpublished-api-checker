@@ -4,11 +4,8 @@ import edu.umd.cs.findbugs.BugAnnotation;
 import edu.umd.cs.findbugs.BugCollection;
 import edu.umd.cs.findbugs.BugInstance;
 import edu.umd.cs.findbugs.SourceLineAnnotation;
-//import edu.umd.cs.findbugs.test.SpotBugsRunner;
 import edu.umd.cs.findbugs.test.SpotBugsExtension;
 import edu.umd.cs.findbugs.test.SpotBugsRunner;
-import mockit.Expectations;
-import mockit.Mocked;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.AbnormalSuite;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.NormalSuite;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.UsageOfUnpublishedMethodDetector;
@@ -22,6 +19,7 @@ import org.junit.jupiter.api.TestClassOrder;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.mockito.MockedConstruction;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -39,6 +37,8 @@ import java.util.stream.StreamSupport;
 import static nablarch.test.Assertion.fail;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.mockito.Mockito.mockConstruction;
+import static org.mockito.Mockito.when;
 
 /**
  * {@link PublishedApisInfo}のテスト
@@ -358,19 +358,21 @@ public class PublishedApisInfoTest {
          * 設定ファイル読み込み中にIOExceptionが発生した場合、例外が発生すること。
          * また、例外のメッセージから、設定の問題箇所を判断できること。
          */
-        @ParameterizedTest
-        public void testReadConfigFiles_IOException(@Mocked final BufferedReader reader) throws IOException {
-            new Expectations() {{
-                reader.readLine();
-                result = new IOException();
-            }};
-            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterface");
-            try {
-                PublishedApisInfo.readConfigFiles();
-                fail();
-            } catch (RuntimeException e) {
-                assertThat(e.getMessage(), containsString("Couldn't read config file."));
-                assertThat(e.getMessage(), containsString(new File("src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterface").toString()));
+        @Test
+        public void testReadConfigFiles_IOException() throws IOException {
+            try (final MockedConstruction<BufferedReader> mocked = mockConstruction(BufferedReader.class, (mock, context) -> {
+                when(mock.readLine()).thenThrow(new IOException());
+            })) {
+                System.setProperty(CONFIG_FILE_PATH,
+                    "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterface");
+                try {
+                    PublishedApisInfo.readConfigFiles();
+                    fail();
+                } catch (RuntimeException e) {
+                    assertThat(e.getMessage(), containsString("Couldn't read config file."));
+                    assertThat(e.getMessage(),
+                        containsString(new File("src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterface").toString()));
+                }
             }
         }
     }
@@ -383,12 +385,13 @@ public class PublishedApisInfoTest {
 
         private static final String CONFIG_FILE_PATH = "nablarch-findbugs-config";
 
-
+        private SpotBugsRunner spotbugs;
 
         @BeforeEach
         public void setUpSpotBugsRule(SpotBugsRunner spotbugs) {
-            spotbugs.addAuxClasspathEntry(null, Paths.get("src/test/java/nablarch/test/tool/findbugs/data/jsrbin/"));
-            spotbugs.addAuxClasspathEntry(null, Paths.get("src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/"));
+            spotbugs.addAuxClasspathEntry(Paths.get("src/test/java/nablarch/test/tool/findbugs/data/jsrbin/"));
+            spotbugs.addAuxClasspathEntry(Paths.get("src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/"));
+            this.spotbugs = spotbugs;
         }
 
         /**
@@ -406,12 +409,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testSettings(SpotBugsRunner spotbugs) throws Exception {
+        public void testSettings() throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/settings/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/settingTest.txt";
-            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/settings/Caller.class");
+            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/settings/Caller.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/settingsTest.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -434,12 +437,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testMethodCall(SpotBugsRunner spotbugs) throws Exception {
+        public void testMethodCall() throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/methodcall/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/methodCallTest.txt";
-            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/Caller.class");
+            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/Caller.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/methodCallTest.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -457,12 +460,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testMethodCallInNonMethod(SpotBugsRunner spotbugs) throws Exception {
+        public void testMethodCallInNonMethod() throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/methodcall/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/methodCallInNonMethodTest.txt";
-            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation.class");
+            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/methodCallInNonMethodTest.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -471,12 +474,12 @@ public class PublishedApisInfoTest {
          * 無名クラスを読み込ませた際の動作を確認する。
          */
         @Test
-        public void testMethodCallInAnonymousClass(SpotBugsRunner spotbugs) throws Exception {
+        public void testMethodCallInAnonymousClass() throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/methodcall/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/methodCallInAnnonymousClass.txt";
-            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation$1.class");
+            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation$1.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/methodCallInAnnonymousClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -486,12 +489,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testMethodCallInLocalClass(SpotBugsRunner spotbugs) throws Exception {
+        public void testMethodCallInLocalClass() throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/methodcall/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/methodCallInLocalClass.txt";
-            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation$1Local.class");
+            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation$1Local.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/methodCallInLocalClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -501,12 +504,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testMethodCallInInnerClass(SpotBugsRunner spotbugs) throws Exception {
+        public void testMethodCallInInnerClass() throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/methodcall/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/methodCallInInnerClass.txt";
-            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation$Inner.class");
+            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/ClassForVariousLocation$Inner.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/methodCallInInnerClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -517,12 +520,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testMethodCallInSubClass(SpotBugsRunner spotbugs) throws Exception {
+        public void testMethodCallInSubClass() throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/methodcall/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/methodCallInSubClass.txt";
-            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/inherit/method/ClassC.class");
+            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/methodcall/inherit/method/ClassC.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/methodCallInSubClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -539,12 +542,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testExceptionsTopLevelClass(SpotBugsRunner spotbugs) throws Exception {
+        public void testExceptionsTopLevelClass() throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/exception/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/exceptionTopLevelClass.txt";
-            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller.class");
+            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/exceptionTopLevelClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -555,12 +558,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testExceptionsInnerClass(SpotBugsRunner spotbugs) throws Exception {
+        public void testExceptionsInnerClass() throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/exception/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/exceptionInnerClass.txt";
-            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller$InnerClass.class");
+            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller$InnerClass.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/exceptionInnerClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -571,12 +574,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testExceptionsLocalClass(SpotBugsRunner spotbugs) throws Exception {
+        public void testExceptionsLocalClass() throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/exception/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/exceptionTest.txt";
-            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller$1LocalClass.class");
+            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller$1LocalClass.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/exceptionLocalClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -587,12 +590,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testExceptionsAnonymousClass(SpotBugsRunner spotbugs) throws Exception {
+        public void testExceptionsAnonymousClass() throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/exception/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/exceptionAnnonymousClass.txt";
-            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller$1.class");
+            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/Caller$1.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/exceptionAnnonymousClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -604,12 +607,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testExceptionsJsrMode(SpotBugsRunner spotbugs) throws Exception {
+        public void testExceptionsJsrMode() throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/exception/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/exceptionJsrMode.txt";
-            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/jsrbin/nablarch/test/tool/findbugs/data/exception/Caller.class");
+            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/jsrbin/nablarch/test/tool/findbugs/data/exception/Caller.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/exceptionJsrMode.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -621,12 +624,12 @@ public class PublishedApisInfoTest {
          * @throws Exception
          */
         @Test
-        public void testExceptionsJava6(SpotBugsRunner spotbugs) throws Exception {
+        public void testExceptionsJava6() throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/exception/settings");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/exceptionJaba6.txt";
-            doFindBugs(spotbugs, outputFile,
+            doFindBugs(outputFile,
                     "src/test/java/nablarch/test/tool/findbugs/data/compilejava1.6/nablarch/test/tool/findbugs/data/exception/Caller.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/exceptionJava6.txt", outputFile);
             deleteFile(outputFile);
@@ -646,12 +649,12 @@ public class PublishedApisInfoTest {
          * </ul>
          */
         @Test
-        public void testInnerExceptionClass(SpotBugsRunner spotbugs) throws Exception {
+        public void testInnerExceptionClass() throws Exception {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/exception/settings2");
             PublishedApisInfo.readConfigFiles();
 
             String outputFile = "src/test/java/nablarch/test/tool/findbugs/exceptionInnerExceptionClass.txt";
-            doFindBugs(spotbugs, outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/CallerForExceptionInnerClass.class");
+            doFindBugs(outputFile, "src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/nablarch/test/tool/findbugs/data/exception/CallerForExceptionInnerClass.class");
             assertFiles("src/test/java/nablarch/test/tool/findbugs/expected/exceptionInnerExceptionClass.txt", outputFile);
             deleteFile(outputFile);
         }
@@ -668,11 +671,11 @@ public class PublishedApisInfoTest {
          *
          * @throws IOException 処理実行中の例外
          */
-        private void doFindBugs(SpotBugsRunner spotbugs, String outputFile, String classForCheck) throws IOException {
+        private void doFindBugs(String outputFile, String classForCheck) throws IOException {
             Path path = Paths.get(classForCheck);
             Path output = Paths.get(outputFile);
 
-            BugCollection bugCollection = spotbugs.performAnalysis(path);
+            BugCollection bugCollection = this.spotbugs.performAnalysis(path);
 
             // BugCollectionのassertはテキストファイルに出力して期待されるテキストファイルとの検証を行っている。
             // 本来であればBugCollectionに対してassertするようなコードを書くべきであるが、過去資産を流用するため
