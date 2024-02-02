@@ -1,6 +1,5 @@
 package nablarch.test.tool.findbugs;
 
-import edu.umd.cs.findbugs.BugAnnotation;
 import edu.umd.cs.findbugs.BugCollection;
 import edu.umd.cs.findbugs.BugInstance;
 import edu.umd.cs.findbugs.DetectorFactory;
@@ -15,7 +14,6 @@ import nablarch.test.tool.findbugs.PublishedApisInfoTest.NormalSuite;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.UsageOfUnpublishedMethodDetector;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
@@ -30,7 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
 
@@ -372,7 +369,7 @@ public class PublishedApisInfoTest {
 
         private static final String CONFIG_FILE_PATH = "nablarch-findbugs-config";
 
-        private AnalysisRunner runner = new AnalysisRunner();
+        private final AnalysisRunner runner = new AnalysisRunner();
 
         @Before
         public void setUpSpotBugsRule() {
