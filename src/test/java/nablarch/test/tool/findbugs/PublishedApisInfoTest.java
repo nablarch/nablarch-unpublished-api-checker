@@ -3,8 +3,11 @@ package nablarch.test.tool.findbugs;
 import edu.umd.cs.findbugs.BugAnnotation;
 import edu.umd.cs.findbugs.BugCollection;
 import edu.umd.cs.findbugs.BugInstance;
+import edu.umd.cs.findbugs.DetectorFactory;
+import edu.umd.cs.findbugs.DetectorFactoryCollection;
 import edu.umd.cs.findbugs.SourceLineAnnotation;
-import edu.umd.cs.findbugs.test.SpotBugsRule;
+import edu.umd.cs.findbugs.config.UserPreferences;
+import edu.umd.cs.findbugs.test.AnalysisRunner;
 import mockit.Expectations;
 import mockit.Mocked;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.AbnormalSuite;
@@ -369,13 +372,12 @@ public class PublishedApisInfoTest {
 
         private static final String CONFIG_FILE_PATH = "nablarch-findbugs-config";
 
-        @Rule
-        public SpotBugsRule spotbugs = new SpotBugsRule();
+        private AnalysisRunner runner = new AnalysisRunner();
 
         @Before
         public void setUpSpotBugsRule() {
-            spotbugs.addAuxClasspathEntry(Paths.get("src/test/java/nablarch/test/tool/findbugs/data/jsrbin/"));
-            spotbugs.addAuxClasspathEntry(Paths.get("src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/"));
+            runner.addAuxClasspathEntry(Paths.get("src/test/java/nablarch/test/tool/findbugs/data/jsrbin/"));
+            runner.addAuxClasspathEntry(Paths.get("src/test/java/nablarch/test/tool/findbugs/data/notjsrmode/"));
         }
 
         /**
@@ -659,7 +661,15 @@ public class PublishedApisInfoTest {
             Path path = Paths.get(classForCheck);
             Path output = Paths.get(outputFile);
 
-            BugCollection bugCollection = spotbugs.performAnalysis(path);
+            // Java21対応のためSpotbugsのバージョンを4.8.3に上げたが、testMethodCallでdetector edu.umd.cs.findbugs.detect.MethodReturnCheckを使う箇所でエラーが発生する。
+            // 原因は不明だが、MethodReturnCheckはテストに無関係のため、無効にすることでエラーを回避している。
+            BugCollection bugCollection = runner.run((engine) -> {
+                DetectorFactoryCollection detectorFactoryCollection = DetectorFactoryCollection.instance();
+                DetectorFactory factory = detectorFactoryCollection.getFactory("MethodReturnCheck");
+                UserPreferences userPreferences = engine.getUserPreferences();
+                userPreferences.enableDetector(factory, false);
+            } ,path).getBugCollection();
+
 
             // BugCollectionのassertはテキストファイルに出力して期待されるテキストファイルとの検証を行っている。
             // 本来であればBugCollectionに対してassertするようなコードを書くべきであるが、過去資産を流用するため
