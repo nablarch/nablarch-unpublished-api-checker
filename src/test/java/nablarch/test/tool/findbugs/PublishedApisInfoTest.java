@@ -658,7 +658,7 @@ public class PublishedApisInfoTest {
             Path path = Paths.get(classForCheck);
             Path output = Paths.get(outputFile);
 
-            // Java21対応のためSpotbugsのバージョンを4.8.3に上げたが、testMethodCallでdetector edu.umd.cs.findbugs.detect.MethodReturnCheckを使う箇所でエラーが発生する。
+            // Java21対応のためSpotBugsのバージョンを4.8.3に上げたところ、testMethodCall実行時にMethodReturnCheckでIllegalArgumentExceptionが発生してしまう。
             // 原因は不明だが、MethodReturnCheckはテストに無関係のため、無効にすることでエラーを回避している。
             BugCollection bugCollection = runner.run((engine) -> {
                 DetectorFactoryCollection detectorFactoryCollection = DetectorFactoryCollection.instance();
