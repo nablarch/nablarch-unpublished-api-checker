@@ -256,19 +256,23 @@ public final class PublishedApisInfo {
             throws ClassNotFoundException {
 
         JavaClass[] interfaceJavaClasses = calleeJavaClass.getInterfaces();
+        // インタフェースに対して公開されているかチェックする。
         for (JavaClass interfaze : interfaceJavaClasses) {
             if (isPermittedForClassOrInterface(interfaze, calleeMethodName, calleeMethodSig)) {
                 return true;
             }
         }
 
-        // インタフェースに対して親クラスのチェックは行わない。
-        if (!calleeJavaClass.isInterface()) {
-            JavaClass superClass = calleeJavaClass.getSuperClass();
-            return superClass != null && isPermittedForClassOrInterface(superClass, calleeMethodName, calleeMethodSig);
-        }
-
-        return false;
+        // スーパークラスに対して公開されているかチェックする。
+        // インターフェイスはクラスを継承できないが暗黙的にObjectクラスを親クラスとして持つため、インターフェイスも親クラスをチェックする。
+        // 詳しい経緯は以下である。
+        // Java21から出力されるバイトコードに以下のような変更が入ったため、対応するためにインターフェイスに対して親クラスもチェックをしている。
+        // 例) request#headersの戻り値の型はjava.util.Map
+        //     String headersMsg = request.headers().toString();
+        // Java17で上記の例をcompileすると、toStringメソッドはjava.lang.Objectクラスのものを呼び出すようなバイトコードが生成されていた。
+        // Java21ではバイトコードが変更され、java.util.MapインターフェースのtoStringメソッドを最初に参照するようになった。
+        JavaClass superClass = calleeJavaClass.getSuperClass();
+        return superClass != null && isPermittedForClassOrInterface(superClass, calleeMethodName, calleeMethodSig);
     }
 
     /**
