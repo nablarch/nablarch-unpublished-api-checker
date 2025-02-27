@@ -16,8 +16,6 @@ public class InterfaceImpleWithSuper extends Super implements InterfaceFor1Inter
     public void superMethod() {
     }
 
-    ;
-
     public void impleOnlyMethod() {
     }
 }
