@@ -184,48 +184,312 @@ public class PublishedApisInfoTest {
         }
 
         /**
-         * コンフィグファイルに記述されたInterfaceが
+         * クラスを指定すると、そのクラスに存在するクラスのメソッドはすべて
          * 使用許可となること。
+         * 暗黙的に継承しているjava.lang.Objectのメソッドは使用不許可となること。
          */
         @Test
-        public void testIsPermitted1Interface() {
-            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/oneinterface");
+        public void testReadConfigClass() {
+            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/configread/class");
             PublishedApisInfo.readConfigFiles();
-            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface",
-                    "test1InterfaceImple", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod2", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod3", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "toString", "()V"));
         }
 
         /**
-         * 記述のないインターフェースに対して、使用不許可となること
-         *
+         * 1つのクラスを継承している場合のケース
+         * スーパークラスを指定すると、コンフィグファイルに記述はなくても継承元のメソッドは使用許可となること。
+         * ただし、オーバーライドされたメソッドをサブクラスから呼び出す場合は、使用不許可となること。
+         */
+        @Test
+        public void testIsPermittedSuperClass() {
+            System.setProperty(CONFIG_FILE_PATH,
+                    "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/superclass");
+            PublishedApisInfo.readConfigFiles();
+            // スーパークラスとして宣言した場合（実装イメージ：Super superinstance = new Sub()）
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Super", "superMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Super", "superOnlyMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Super", "toString", "()V"));
+
+            // サブクラスとして宣言した場合（実装イメージ：Sub subinstance = new Sub()）
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Sub", "superMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Sub", "superOnlyMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Sub", "subOnlyMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Sub", "toString", "()V"));
+        }
+
+        /**
+         * 1つのクラスを継承している場合のケース
+         * サブクラスを指定すると、オーバーライドされたメソッドをサブクラスから呼ぶ場合は使用許可となること。
+         * ただし、オーバーライドされていない継承元のメソッドはは、使用不許可となること。
+         */
+        @Test
+        public void testIsPermittedSubClass() {
+            System.setProperty(CONFIG_FILE_PATH,
+                    "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subclass");
+            PublishedApisInfo.readConfigFiles();
+            // スーパークラスとして宣言した場合（実装イメージ：Super superinstance = new Sub()）
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Super", "superMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Super", "superOnlyMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Super", "toString", "()V"));
+
+            // サブクラスとして宣言した場合（実装イメージ：Sub subinstance = new Sub()）
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Sub", "superMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Sub", "superOnlyMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Sub", "subOnlyMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Sub", "toString", "()V"));
+        }
+
+        /**
+         * 1つのInterfaceを実装している場合のケース
+         * Interfaceを指定すると、コンフィグファイルに記述はなくてもInterfaceのメソッドは使用許可となること。
+         * ただし、オーバーライドされた実装クラスのメソッドから呼び出す場合は、使用不許可となること。
+         */
+        @Test
+        public void testIsPermittedOneInterface() {
+            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/oneinterface");
+            PublishedApisInfo.readConfigFiles();
+            // 実装クラスとして宣言した場合（実装イメージ：OneInterfaceImple oneinterfaceimple = new OneInterfaceImple()）
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.OneInterfaceImple", "interfaceMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.OneInterfaceImple", "interfaceDefaultMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.OneInterfaceImple", "interfaceOnlyDefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.OneInterfaceImple", "impleOnlyMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.OneInterfaceImple", "toString", "()V"));
+
+            // インタフェースとして宣言した場合（実装イメージ：InterfaceFor1Interface oneinterface = new OneInterfaceImple()）
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "interfaceMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "interfaceDefaultMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "interfaceOnlyDefaultMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "toString", "()V"));
+        }
+
+        /**
+         * 1つのInterfaceを実装している場合のケース
+         * 実装クラスを指定すると、オーバーライドされたメソッドを実装クラスから呼ぶ場合は使用許可となること。
+         * ただし、オーバーライドされていないInterfaceのメソッドは、使用不許可となること。
+         */
+        @Test
+        public void testIsPermittedOneInterfaceImple() {
+            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/oneinterfaceimple");
+            PublishedApisInfo.readConfigFiles();
+            // 実装クラスとして宣言した場合（実装イメージ：OneInterfaceImple oneinterfaceimple = new OneInterfaceImple()）
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.OneInterfaceImple", "interfaceMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.OneInterfaceImple", "interfaceDefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.OneInterfaceImple", "interfaceOnlyDefaultMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.OneInterfaceImple", "impleOnlyMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.OneInterfaceImple", "toString", "()V"));
+
+            // インタフェースとして宣言した場合（実装イメージ：InterfaceFor1Interface oneinterface = new OneInterfaceImple()）
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "interfaceMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "interfaceDefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "interfaceOnlyDefaultMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "toString", "()V"));
+        }
+
+        /**
+         * 1つのInterfaceを継承したInterfaceを実装している場合のケース
+         * SuperInterfaceを指定すると、オーバーライドされたメソッドをSuperInterfaceから呼ぶ場合は使用許可となること。
+         * ただし、オーバーライドされていないInterfaceのメソッドは、使用不許可となること。
          */
         @Test
         public void testIsPermittedSuperInterface() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/superinterface");
             PublishedApisInfo.readConfigFiles();
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceMethod",
-                    "()V"));
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "subInterfaceMethod",
-                    "()V"));
+            // SuperInterfaceと実装クラスを宣言する場合は、ツールの仕様的（Interface、クラスを見つかるまで探しに行く）に１つのInterfaceを実装している場合と同義のため省略している。
+
+            // SubInterfaceとして宣言した場合（実装イメージ：SubInterface subinterface = new SubInterfaceImple()）
+            // subInterfaceMethod、subInterfaceonlyDefaultMethodの呼び出しについては、１つのInterfaceを実装している場合と同義のため省略している。
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceDefaultMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceMethod", "()V"));
+
         }
 
         /**
-         * 別のInterfaceを継承したInterfaceに対して、
-         * 継承元のメソッド、自身のメソッドともにコンフィグファイルに記述されたもののみ
-         * 使用許可となること。
+         * 1つのInterfaceを継承したInterfaceを実装している場合のケース
+         * SubInterfaceを指定すると、オーバーライドされたメソッドをSubInterfaceから呼ぶ場合は使用許可となること。
+         * ただし、オーバーライドされていないInterfaceのメソッドは、使用不許可となること。
          */
         @Test
         public void testIsPermittedSubInterface() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterface");
             PublishedApisInfo.readConfigFiles();
-            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
-                    "superPublishedInterfaceMethod", "()V"));
-            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
-                    "subPublishedInterfaceMethod", "()V"));
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
-                    "superUnpublishedInterfaceMethod", "()V"));
-            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface",
-                    "subUnpublishedInterfaceMethod", "()V"));
+            // SuperInterfaceと実装クラスを宣言する場合は、ツールの仕様的（Interface、クラスを見つかるまで探しに行く）に１つのInterfaceを実装している場合と同義のため省略している。
+
+            // SubInterfaceとして宣言した場合（実装イメージ：SubInterface subinterface = new SubInterfaceImple()）
+            // subInterfaceMethod、subInterfaceonlyDefaultMethodの呼び出しについては、１つのInterfaceを実装している場合と同義のため省略している。
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceDefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceMethod", "()V"));
+
+        }
+
+        /**
+         * 1つのInterfaceを継承したInterfaceを実装している場合のケース
+         * 実装クラスを指定すると、オーバーライドされたメソッドを実装クラスから呼ぶ場合は使用許可となること。
+         * ただし、オーバーライドされていないInterfaceのメソッドは、使用不許可となること。
+         */
+        @Test
+        public void testIsPermittedSubInterfaceImple() {
+            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterfaceimple");
+            PublishedApisInfo.readConfigFiles();
+            // SuperInterfaceと実装クラスを宣言する場合は、ツールの仕様的（Interface、クラスを見つかるまで探しに行く）に１つのInterfaceを実装している場合と同義のため省略している。
+
+            // SubInterfaceとして宣言した場合（実装イメージ：SubInterface subinterface = new SubInterfaceImple()）
+            // subInterfaceMethod、subInterfaceonlyDefaultMethodの呼び出しについては、１つのInterfaceを実装している場合と同義のため省略している。
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceDefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceMethod", "()V"));
+
+        }
+
+        /**
+         * 2つのInterfaceを実装している場合のケース
+         * 片方のInterfaceを指定すると、コンフィグファイルに記述はなくてもそのInterfaceのメソッドは使用許可となること。
+         * ただし、オーバーライドされた実装クラスのメソッドから呼び出す場合は、使用不許可となること。
+         */
+        @Test
+        public void testIsPermittedTwoInterface() {
+            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/twointerface");
+            PublishedApisInfo.readConfigFiles();
+            // 実装クラスとして宣言した場合（実装イメージ：TwoInterfaceImple twointerfaceimple = new TwoInterfaceImple()）
+            // もう片方のInterface（InterfaceFor1Interface）のメソッドの呼び出しについては、以下のInterfaceFor2Interfaceを呼び出す場合と同義のため省略している。
+            // twoInterfaceImpleOnlyMethodの呼び出しについては、１つのInterfaceを実装している場合と同義のため省略している。
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2Method", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2DefaultMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2OnlyDefaultMethod", "()V"));
+
+            // 片方のInterfaceとして宣言した場合（実装イメージ：InterfaceFor2Interface twointerface = new TwoInterfaceImple()）
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2Method", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2DefaultMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2OnlyDefaultMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "toString", "()V"));
+
+
+        }
+
+        /**
+         * 2つのInterfaceを実装している場合のケース
+         * 片方のInterfaceを指定しても、もう片方のIntefaceのメソッドは使用不許可となること。
+         */
+        @Test
+        public void testIsNotPermittedTwoInterface() {
+            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/oneinterface");
+            PublishedApisInfo.readConfigFiles();
+            // 実装クラスとして宣言した場合（実装イメージ：TwoInterfaceImple twointerfaceimple = new TwoInterfaceImple()）
+            // もう片方のInterface（InterfaceFor1Interface）のメソッドの呼び出しについては、以下のInterfaceFor2Interfaceを呼び出す場合と同義のため省略している。
+            // twoInterfaceImpleOnlyMethodの呼び出しについては、１つのInterfaceを実装している場合と同義のため省略している。
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2Method", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2DefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2OnlyDefaultMethod", "()V"));
+
+            // 片方のInterfaceとして宣言した場合（実装イメージ：InterfaceFor2Interface twointerface = new TwoInterfaceImple()）
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2Method", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2DefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2OnlyDefaultMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "toString", "()V"));
+
+
+        }
+
+
+        /**
+         * 2つのInterfaceを実装している場合のケース
+         * 実装クラスを指定すると、オーバーライドされたメソッドを実装クラスから呼ぶ場合は使用許可となること。
+         * ただし、オーバーライドされていないInterfaceのメソッドは、使用不許可となること。
+         */
+        @Test
+        public void testIsPermittedTwoInterfaceImple() {
+            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/twointerfaceimple");
+            PublishedApisInfo.readConfigFiles();
+            // 実装クラスとして宣言した場合（実装イメージ：TwoInterfaceImple twointerfaceimple = new TwoInterfaceImple()）
+            // もう片方のInterface（InterfaceFor1Interface）のメソッドの呼び出しについては、以下のInterfaceFor2Interfaceを呼び出す場合と同義のため省略している。
+            // twoInterfaceImpleOnlyMethodの呼び出しについては、１つのInterfaceを実装している場合と同義のため省略している。
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2Method", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2DefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2OnlyDefaultMethod", "()V"));
+
+            // 片方のInterfaceとして宣言した場合（実装イメージ：InterfaceFor2Interface twointerface = new TwoInterfaceImple()）
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2Method", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2DefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2OnlyDefaultMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "toString", "()V"));
+
+
+        }
+
+        /**
+         * クラスが1つのクラスを継承するかつ、1つのInterfaceを実装している場合のケース
+         * Interfaceを指定すると、コンフィグファイルに記述はなくてもそのInterfaceのメソッドは使用許可となること。
+         * ただし、オーバーライドされた実装クラスのメソッドから呼び出す場合は、使用不許可となること。
+         */
+        @Test
+        public void testIsPermittedImplementedInterfaceWithSuperClass() {
+            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/oneinterface");
+            PublishedApisInfo.readConfigFiles();
+
+            // 実装クラスとして宣言した場合（実装イメージ：InterfaceImpleWithSuper interfaceimplewithsuper = new InterfaceImpleWithSuper()）
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "interfaceMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "interfaceDefaultMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "interfaceOnlyDefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "superMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "superOnlyMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "impleOnlyMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "toString", "()V"));
+        }
+
+        /**
+         * クラスが1つのクラスを継承するかつ、1つのInterfaceを実装している場合のケース
+         * スーパークラスを指定すると、コンフィグファイルに記述はなくても継承元のメソッドは使用許可となること。
+         * ただし、オーバーライドされたメソッドをサブクラスから呼び出す場合は、使用不許可となること。
+         */
+        @Test
+        public void testIsPermittedSuperClassWithImplementedInterface() {
+            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/superclass");
+            PublishedApisInfo.readConfigFiles();
+
+            // 実装クラスとして宣言した場合（実装イメージ：InterfaceImpleWithSuper interfaceimplewithsuper = new InterfaceImpleWithSuper()）
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "interfaceMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "interfaceDefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "interfaceOnlyDefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "superMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "superOnlyMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "impleOnlyMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "toString", "()V"));
+        }
+
+        /**
+         * クラスが1つのクラスを継承するかつ、1つのInterfaceを実装している場合のケース
+         * 実装クラスを指定すると、オーバーライドされたメソッドを実装クラスから呼ぶ場合は使用許可となること。
+         * ただし、オーバーライドされていないInterface、スーパークラスのメソッドは、使用不許可となること。
+         */
+        @Test
+        public void testIsPermittedClassWithSuperClassAndInterface() {
+            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/superclassandinterface");
+            PublishedApisInfo.readConfigFiles();
+
+            // 実装クラスとして宣言した場合（実装イメージ：InterfaceImpleWithSuper interfaceimplewithsuper = new InterfaceImpleWithSuper()）
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "interfaceMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "interfaceDefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "interfaceOnlyDefaultMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "superMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "superOnlyMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "impleOnlyMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceImpleWithSuper", "toString", "()V"));
         }
 
         /**
@@ -244,21 +508,6 @@ public class PublishedApisInfoTest {
         }
 
         /**
-         * 使用許可のあるクラスを継承したサブクラスで、
-         * コンフィグファイルに記述はなくても継承元の許可されたメソッドは
-         * 使用できること。
-         */
-        @Test
-        public void testIsPermittedSuperClass() {
-            System.setProperty(CONFIG_FILE_PATH,
-                    "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/superclass");
-            PublishedApisInfo.readConfigFiles();
-            Assert.assertTrue(PublishedApisInfo.isPermitted(
-                    "nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Sub", "testSuper",
-                    "()V"));
-        }
-
-        /**
          * privateなメソッドはコンフィグファイルに記述がなくても
          * trueが返ること
          */
@@ -269,6 +518,32 @@ public class PublishedApisInfoTest {
             Assert.assertTrue(PublishedApisInfo.isPermitted(
                     "nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "privateMethod",
                     "()V"));
+        }
+
+        /**
+         * 全てのクラスが暗黙的に継承しているjava.lang.Objectに対して、
+         * コンフィグファイルに記述すると使用許可となること。
+         */
+        @Test
+        public void testObjectMethod() {
+            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/object");
+            PublishedApisInfo.readConfigFiles();
+            // 単体のクラスの場合
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "toString", "()V"));
+            // 許可リストに定義されていないクラス。
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.TestClass", "testMethod", "()V"));
+
+            // クラスを継承したサブクラスの場合
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Super", "toString", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.superclass.Sub", "toString", "()V"));
+
+            // インタフェースを実装したクラスの場合
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.OneInterfaceImple", "toString", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "toString", "()V"));
+
+            // １つのインタフェースを継承したインターフェースを実装したクラスの場合
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "toString", "()V"));
+
         }
 
     }

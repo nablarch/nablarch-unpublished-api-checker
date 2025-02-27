@@ -2,7 +2,15 @@ package nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfa
 
 public class OneInterfaceImple implements InterfaceFor1Interface {
 
-    public void test1InterfaceImple() {
+    @Override
+    public void interfaceMethod() {
+    }
+
+    @Override
+    public void interfaceDefaultMethod() {
+    }
+
+    public void impleOnlyMethod() {
     }
 
 }
