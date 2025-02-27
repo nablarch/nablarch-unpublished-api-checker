@@ -525,7 +525,7 @@ public class PublishedApisInfoTest {
          * コンフィグファイルに記述すると使用許可となること。
          */
         @Test
-        public void testObjectMethod() {
+        public void testIsPermittedObjectMethod() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/object");
             PublishedApisInfo.readConfigFiles();
             // 単体のクラスの場合
@@ -544,8 +544,61 @@ public class PublishedApisInfoTest {
             // １つのインタフェースを継承したインターフェースを実装したクラスの場合
             Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "toString", "()V"));
 
+            // Enumの場合
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.enumz.TestEnum", "toString", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.enumz.TestImpleEnum", "toString", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.enumz.TestEnum", "toString", "()V"));
         }
 
+        /**
+         * 1つのInterfaceを実装しているEnumの場合のケース
+         * Interfaceを指定すると、コンフィグファイルに記述はなくてもInterfaceのメソッドは使用許可となること。
+         * ただし、オーバーライドされた実装クラスのメソッドから呼び出す場合は、使用不許可となること。
+         */
+        @Test
+        public void testIsPermittedImplementedInterfaceWithEnum() {
+            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/oneinterface");
+            PublishedApisInfo.readConfigFiles();
+            // 実装クラスとして宣言した場合（実装イメージ：TestImpleEnum testenum = new TestImpleEnum()）
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.enumz.TestImpleEnum", "interfaceMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.enumz.TestImpleEnum", "interfaceDefaultMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.enumz.TestImpleEnum", "interfaceOnlyDefaultMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.enumz.TestImpleEnum", "toString", "()V"));
+
+            // インタフェースとして宣言した場合（実装イメージ：InterfaceFor1Interface oneinterface = new TestImpleEnum()）
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "interfaceMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "interfaceDefaultMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "interfaceOnlyDefaultMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "toString", "()V"));
+
+        }
+
+        /**
+         * 1つのInterfaceを実装しているEnumの場合のケース
+         * Enumを指定すると、オーバーライドされたメソッドを実装クラスから呼ぶ場合は使用許可となること。
+         * ただし、オーバーライドされていないInterfaceのメソッドは、使用不許可となること。
+         */
+        @Test
+        public void testIsPermittedEnumWithInterface() {
+            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/enumz");
+            PublishedApisInfo.readConfigFiles();
+            // 実装クラスとして宣言した場合（実装イメージ：TestImpleEnum testenum = new TestImpleEnum()）
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.enumz.TestImpleEnum", "interfaceMethod", "()V"));
+            Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.enumz.TestImpleEnum", "interfaceDefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.enumz.TestImpleEnum", "interfaceOnlyDefaultMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.enumz.TestImpleEnum", "toString", "()V"));
+
+            // インタフェースとして宣言した場合（実装イメージ：InterfaceFor1Interface oneinterface = new TestImpleEnum()）
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "interfaceMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "interfaceDefaultMethod", "()V"));
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "interfaceOnlyDefaultMethod", "()V"));
+            // 暗黙的に継承しているObjectメソッドは使用不許可となること
+            Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "toString", "()V"));
+
+        }
     }
 
     /**
