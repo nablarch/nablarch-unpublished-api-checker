@@ -717,7 +717,7 @@ public class PublishedApisInfoTest {
          *   ・内部クラス、抽象クラス、インターフェースに対しても普通のクラスと同じ動作をする
          *   ・無名クラス内部は検知されない。
          *
-         * @throws Exception
+         * @throws Exception エラーが発生した場合
          */
         @Test
         public void testSettings() throws Exception {
@@ -745,7 +745,7 @@ public class PublishedApisInfoTest {
          * ・catch文、finally文
          * ・継承
          * ・インターフェース
-         * @throws Exception
+         * @throws Exception エラーが発生した場合
          */
         @Test
         public void testMethodCall() throws Exception {
@@ -768,7 +768,7 @@ public class PublishedApisInfoTest {
          * ・ローカルクラス
          * ・継承有ローカルクラス
          * ・内部クラス
-         * @throws Exception
+         * @throws Exception エラーが発生した場合
          */
         @Test
         public void testMethodCallInNonMethod() throws Exception {
@@ -797,7 +797,7 @@ public class PublishedApisInfoTest {
 
         /**
          * ローカルクラスを読み込ませた際の動作を確認する。
-         * @throws Exception
+         * @throws Exception エラーが発生した場合
          */
         @Test
         public void testMethodCallInLocalClass() throws Exception {
@@ -812,7 +812,7 @@ public class PublishedApisInfoTest {
 
         /**
          * 内部クラスを読み込ませた際の動作を確認する。
-         * @throws Exception
+         * @throws Exception エラーが発生した場合
          */
         @Test
         public void testMethodCallInInnerClass() throws Exception {
@@ -828,7 +828,7 @@ public class PublishedApisInfoTest {
         /**
          * サブクラスを読み込ませた際の動作を確認する。
          *
-         * @throws Exception
+         * @throws Exception エラーが発生した場合
          */
         @Test
         public void testMethodCallInSubClass() throws Exception {
@@ -850,7 +850,7 @@ public class PublishedApisInfoTest {
          * ・トップレベルクラス中catch指摘
          * ・catch句内のネストしたtry-catch
          *
-         * @throws Exception
+         * @throws Exception エラーが発生した場合
          */
         @Test
         public void testExceptionsTopLevelClass() throws Exception {
@@ -866,7 +866,7 @@ public class PublishedApisInfoTest {
         /**
          * 内部クラスで使用されている例外クラスに対する動作の確認を行う。
          *
-         * @throws Exception
+         * @throws Exception エラーが発生した場合
          */
         @Test
         public void testExceptionsInnerClass() throws Exception {
@@ -882,7 +882,7 @@ public class PublishedApisInfoTest {
         /**
          * ローカルクラスで使用されている例外クラスに対する動作の確認を行う。
          *
-         * @throws Exception
+         * @throws Exception エラーが発生した場合
          */
         @Test
         public void testExceptionsLocalClass() throws Exception {
@@ -898,7 +898,7 @@ public class PublishedApisInfoTest {
         /**
          * 無名クラスで使用されている例外クラスに対する動作の確認を行う。
          *
-         * @throws Exception
+         * @throws Exception エラーが発生した場合
          */
         @Test
         public void testExceptionsAnonymousClass() throws Exception {
@@ -915,7 +915,7 @@ public class PublishedApisInfoTest {
          * Java1.4以前の、オペコードにjsrが使用されている
          * classファイルに対する動作の確認を行う。
          *
-         * @throws Exception
+         * @throws Exception エラーが発生した場合
          */
         @Test
         public void testExceptionsJsrMode() throws Exception {
@@ -932,7 +932,7 @@ public class PublishedApisInfoTest {
          * Java1.6でコンパイルされた
          * classファイルに対する動作の確認を行う。
          *
-         * @throws Exception
+         * @throws Exception エラーが発生した場合
          */
         @Test
         public void testExceptionsJava6() throws Exception {
