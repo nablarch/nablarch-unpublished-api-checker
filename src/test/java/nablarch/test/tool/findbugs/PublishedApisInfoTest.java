@@ -248,8 +248,8 @@ public class PublishedApisInfoTest {
         }
 
         /**
-         * 1つのInterfaceを実装している場合のケース
-         * Interfaceを指定すると、コンフィグファイルに記述はなくてもInterfaceのメソッドは使用許可となること。
+         * 1つのインタフェースを実装している場合のケース
+         * インタフェースを指定すると、コンフィグファイルに記述はなくてもインタフェースのメソッドは使用許可となること。
          * ただし、オーバーライドされた実装クラスのメソッドから呼び出す場合は、使用不許可となること。
          */
         @Test
@@ -273,9 +273,9 @@ public class PublishedApisInfoTest {
         }
 
         /**
-         * 1つのInterfaceを実装している場合のケース
+         * 1つのインタフェースを実装している場合のケース
          * 実装クラスを指定すると、オーバーライドされたメソッドを実装クラスから呼ぶ場合は使用許可となること。
-         * ただし、オーバーライドされていないInterfaceのメソッドは、使用不許可となること。
+         * ただし、オーバーライドされていないインタフェースのメソッドは、使用不許可となること。
          */
         @Test
         public void testIsPermittedOneInterfaceImple() {
@@ -298,62 +298,62 @@ public class PublishedApisInfoTest {
         }
 
         /**
-         * 1つのInterfaceを継承したInterfaceを実装している場合のケース
-         * SuperInterfaceを指定すると、オーバーライドされたメソッドをSuperInterfaceから呼ぶ場合は使用許可となること。
-         * ただし、オーバーライドされていないInterfaceのメソッドは、使用不許可となること。
+         * 1つのインタフェースを継承したインタフェースを実装している場合のケース
+         * スーパーインタフェースを指定すると、オーバーライドされたメソッドをスーパーインタフェースから呼ぶ場合は使用許可となること。
+         * ただし、オーバーライドされていないインタフェースのメソッドは、使用不許可となること。
          */
         @Test
         public void testIsPermittedSuperInterface() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/superinterface");
             PublishedApisInfo.readConfigFiles();
-            // SuperInterfaceと実装クラスを宣言する場合は、ツールの仕様的（Interface、クラスを見つかるまで探しに行く）に１つのInterfaceを実装している場合と同義のため省略している。
+            // スーパーインタフェースと実装クラスを宣言する場合は、ツールの仕様的（インタフェース、クラスを見つかるまで探しに行く）に１つのインタフェースを実装している場合と同義のため省略している。
 
-            // SubInterfaceとして宣言した場合（実装イメージ：SubInterface subinterface = new SubInterfaceImple()）
-            // subInterfaceMethod、subInterfaceonlyDefaultMethodの呼び出しについては、１つのInterfaceを実装している場合と同義のため省略している。
+            // サブインタフェースとして宣言した場合（実装イメージ：SubInterface subinterface = new SubInterfaceImple()）
+            // subInterfaceMethod、subInterfaceonlyDefaultMethodの呼び出しについては、１つのインタフェースを実装している場合と同義のため省略している。
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceDefaultMethod", "()V"));
             Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceMethod", "()V"));
 
         }
 
         /**
-         * 1つのInterfaceを継承したInterfaceを実装している場合のケース
-         * SubInterfaceを指定すると、オーバーライドされたメソッドをSubInterfaceから呼ぶ場合は使用許可となること。
-         * ただし、オーバーライドされていないInterfaceのメソッドは、使用不許可となること。
+         * 1つのインタフェースを継承したインタフェースを実装している場合のケース
+         * サブインタフェースを指定すると、オーバーライドされたメソッドをサブインタフェースから呼ぶ場合は使用許可となること。
+         * ただし、オーバーライドされていないインタフェースのメソッドは、使用不許可となること。
          */
         @Test
         public void testIsPermittedSubInterface() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterface");
             PublishedApisInfo.readConfigFiles();
-            // SuperInterfaceと実装クラスを宣言する場合は、ツールの仕様的（Interface、クラスを見つかるまで探しに行く）に１つのInterfaceを実装している場合と同義のため省略している。
+            // スーパーインタフェースと実装クラスを宣言する場合は、ツールの仕様的（インタフェース、クラスを見つかるまで探しに行く）に１つのインタフェースを実装している場合と同義のため省略している。
 
-            // SubInterfaceとして宣言した場合（実装イメージ：SubInterface subinterface = new SubInterfaceImple()）
-            // subInterfaceMethod、subInterfaceonlyDefaultMethodの呼び出しについては、１つのInterfaceを実装している場合と同義のため省略している。
+            // サブインタフェースとして宣言した場合（実装イメージ：SubInterface subinterface = new SubInterfaceImple()）
+            // subInterfaceMethod、subInterfaceonlyDefaultMethodの呼び出しについては、１つのインタフェースを実装している場合と同義のため省略している。
             Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceDefaultMethod", "()V"));
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceMethod", "()V"));
 
         }
 
         /**
-         * 1つのInterfaceを継承したInterfaceを実装している場合のケース
+         * 1つのインタフェースを継承したインタフェースを実装している場合のケース
          * 実装クラスを指定すると、オーバーライドされたメソッドを実装クラスから呼ぶ場合は使用許可となること。
-         * ただし、オーバーライドされていないInterfaceのメソッドは、使用不許可となること。
+         * ただし、オーバーライドされていないインタフェースのメソッドは、使用不許可となること。
          */
         @Test
         public void testIsPermittedSubInterfaceImple() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterfaceimple");
             PublishedApisInfo.readConfigFiles();
-            // SuperInterfaceと実装クラスを宣言する場合は、ツールの仕様的（Interface、クラスを見つかるまで探しに行く）に１つのInterfaceを実装している場合と同義のため省略している。
+            // スーパーインタフェースと実装クラスを宣言する場合は、ツールの仕様的（インタフェース、クラスを見つかるまで探しに行く）に１つのインタフェースを実装している場合と同義のため省略している。
 
-            // SubInterfaceとして宣言した場合（実装イメージ：SubInterface subinterface = new SubInterfaceImple()）
-            // subInterfaceMethod、subInterfaceonlyDefaultMethodの呼び出しについては、１つのInterfaceを実装している場合と同義のため省略している。
+            // サブインタフェースとして宣言した場合（実装イメージ：SubInterface subinterface = new SubInterfaceImple()）
+            // subInterfaceMethod、subInterfaceonlyDefaultMethodの呼び出しについては、１つのインタフェースを実装している場合と同義のため省略している。
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceDefaultMethod", "()V"));
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "superInterfaceMethod", "()V"));
 
         }
 
         /**
-         * 2つのInterfaceを実装している場合のケース
-         * 片方のInterfaceを指定すると、コンフィグファイルに記述はなくてもそのInterfaceのメソッドは使用許可となること。
+         * 2つのインタフェースを実装している場合のケース
+         * 片方のインタフェースを指定すると、コンフィグファイルに記述はなくてもそのインタフェースのメソッドは使用許可となること。
          * ただし、オーバーライドされた実装クラスのメソッドから呼び出す場合は、使用不許可となること。
          */
         @Test
@@ -361,8 +361,8 @@ public class PublishedApisInfoTest {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/twointerface");
             PublishedApisInfo.readConfigFiles();
             // 実装クラスとして宣言した場合（実装イメージ：TwoInterfaceImple twointerfaceimple = new TwoInterfaceImple()）
-            // もう片方のInterface（InterfaceFor1Interface）のメソッドの呼び出しについては、以下のInterfaceFor2Interfaceを呼び出す場合と同義のため省略している。
-            // twoInterfaceImpleOnlyMethodの呼び出しについては、１つのInterfaceを実装している場合と同義のため省略している。
+            // もう片方のインタフェース（InterfaceFor1Interface）のメソッドの呼び出しについては、以下のInterfaceFor2Interfaceを呼び出す場合と同義のため省略している。
+            // twoInterfaceImpleOnlyMethodの呼び出しについては、１つのインタフェースを実装している場合と同義のため省略している。
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2Method", "()V"));
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2DefaultMethod", "()V"));
             Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2OnlyDefaultMethod", "()V"));
@@ -378,21 +378,21 @@ public class PublishedApisInfoTest {
         }
 
         /**
-         * 2つのInterfaceを実装している場合のケース
-         * 片方のInterfaceを指定しても、もう片方のIntefaceのメソッドは使用不許可となること。
+         * 2つのインタフェースを実装している場合のケース
+         * 片方のインタフェースを指定しても、もう片方のIntefaceのメソッドは使用不許可となること。
          */
         @Test
         public void testIsNotPermittedTwoInterface() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/oneinterface");
             PublishedApisInfo.readConfigFiles();
             // 実装クラスとして宣言した場合（実装イメージ：TwoInterfaceImple twointerfaceimple = new TwoInterfaceImple()）
-            // もう片方のInterface（InterfaceFor1Interface）のメソッドの呼び出しについては、以下のInterfaceFor2Interfaceを呼び出す場合と同義のため省略している。
-            // twoInterfaceImpleOnlyMethodの呼び出しについては、１つのInterfaceを実装している場合と同義のため省略している。
+            // もう片方のインタフェース（InterfaceFor1Interface）のメソッドの呼び出しについては、以下のInterfaceFor2Interfaceを呼び出す場合と同義のため省略している。
+            // twoInterfaceImpleOnlyMethodの呼び出しについては、１つのインタフェースを実装している場合と同義のため省略している。
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2Method", "()V"));
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2DefaultMethod", "()V"));
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2OnlyDefaultMethod", "()V"));
 
-            // 片方のInterfaceとして宣言した場合（実装イメージ：InterfaceFor2Interface twointerface = new TwoInterfaceImple()）
+            // 片方のインタフェースとして宣言した場合（実装イメージ：InterfaceFor2Interface twointerface = new TwoInterfaceImple()）
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2Method", "()V"));
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2DefaultMethod", "()V"));
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2OnlyDefaultMethod", "()V"));
@@ -404,22 +404,22 @@ public class PublishedApisInfoTest {
 
 
         /**
-         * 2つのInterfaceを実装している場合のケース
+         * 2つのインタフェースを実装している場合のケース
          * 実装クラスを指定すると、オーバーライドされたメソッドを実装クラスから呼ぶ場合は使用許可となること。
-         * ただし、オーバーライドされていないInterfaceのメソッドは、使用不許可となること。
+         * ただし、オーバーライドされていないインタフェースのメソッドは、使用不許可となること。
          */
         @Test
         public void testIsPermittedTwoInterfaceImple() {
             System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/twointerfaceimple");
             PublishedApisInfo.readConfigFiles();
             // 実装クラスとして宣言した場合（実装イメージ：TwoInterfaceImple twointerfaceimple = new TwoInterfaceImple()）
-            // もう片方のInterface（InterfaceFor1Interface）のメソッドの呼び出しについては、以下のInterfaceFor2Interfaceを呼び出す場合と同義のため省略している。
-            // twoInterfaceImpleOnlyMethodの呼び出しについては、１つのInterfaceを実装している場合と同義のため省略している。
+            // もう片方のインタフェース（InterfaceFor1Interface）のメソッドの呼び出しについては、以下のInterfaceFor2Interfaceを呼び出す場合と同義のため省略している。
+            // twoInterfaceImpleOnlyMethodの呼び出しについては、１つのインタフェースを実装している場合と同義のため省略している。
             Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2Method", "()V"));
             Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2DefaultMethod", "()V"));
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.TwoInterfaceImple", "interface2OnlyDefaultMethod", "()V"));
 
-            // 片方のInterfaceとして宣言した場合（実装イメージ：InterfaceFor2Interface twointerface = new TwoInterfaceImple()）
+            // 片方のインタフェースとして宣言した場合（実装イメージ：InterfaceFor2Interface twointerface = new TwoInterfaceImple()）
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2Method", "()V"));
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2DefaultMethod", "()V"));
             Assert.assertFalse(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor2Interface", "interface2OnlyDefaultMethod", "()V"));
@@ -430,8 +430,8 @@ public class PublishedApisInfoTest {
         }
 
         /**
-         * クラスが1つのクラスを継承するかつ、1つのInterfaceを実装している場合のケース
-         * Interfaceを指定すると、コンフィグファイルに記述はなくてもそのInterfaceのメソッドは使用許可となること。
+         * クラスが1つのクラスを継承するかつ、1つのインタフェースを実装している場合のケース
+         * インタフェースを指定すると、コンフィグファイルに記述はなくてもそのインタフェースのメソッドは使用許可となること。
          * ただし、オーバーライドされた実装クラスのメソッドから呼び出す場合は、使用不許可となること。
          */
         @Test
@@ -451,7 +451,7 @@ public class PublishedApisInfoTest {
         }
 
         /**
-         * クラスが1つのクラスを継承するかつ、1つのInterfaceを実装している場合のケース
+         * クラスが1つのクラスを継承するかつ、1つのインタフェースを実装している場合のケース
          * スーパークラスを指定すると、コンフィグファイルに記述はなくても継承元のメソッドは使用許可となること。
          * ただし、オーバーライドされたメソッドをサブクラスから呼び出す場合は、使用不許可となること。
          */
@@ -472,9 +472,9 @@ public class PublishedApisInfoTest {
         }
 
         /**
-         * クラスが1つのクラスを継承するかつ、1つのInterfaceを実装している場合のケース
+         * クラスが1つのクラスを継承するかつ、1つのインタフェースを実装している場合のケース
          * 実装クラスを指定すると、オーバーライドされたメソッドを実装クラスから呼ぶ場合は使用許可となること。
-         * ただし、オーバーライドされていないInterface、スーパークラスのメソッドは、使用不許可となること。
+         * ただし、オーバーライドされていないインタフェース、スーパークラスのメソッドは、使用不許可となること。
          */
         @Test
         public void testIsPermittedClassWithSuperClassAndInterface() {
@@ -541,7 +541,7 @@ public class PublishedApisInfoTest {
             Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.OneInterfaceImple", "toString", "()V"));
             Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.InterfaceFor1Interface", "toString", "()V"));
 
-            // １つのインタフェースを継承したインターフェースを実装したクラスの場合
+            // １つのインタフェースを継承したインタフェースを実装したクラスの場合
             Assert.assertTrue(PublishedApisInfo.isPermitted("nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfaze.SubInterface", "toString", "()V"));
 
             // Enumの場合
@@ -551,8 +551,8 @@ public class PublishedApisInfoTest {
         }
 
         /**
-         * 1つのInterfaceを実装しているEnumの場合のケース
-         * Interfaceを指定すると、コンフィグファイルに記述はなくてもInterfaceのメソッドは使用許可となること。
+         * 1つのインタフェースを実装しているEnumの場合のケース
+         * インタフェースを指定すると、コンフィグファイルに記述はなくてもインタフェースのメソッドは使用許可となること。
          * ただし、オーバーライドされた実装クラスのメソッドから呼び出す場合は、使用不許可となること。
          */
         @Test
@@ -576,9 +576,9 @@ public class PublishedApisInfoTest {
         }
 
         /**
-         * 1つのInterfaceを実装しているEnumの場合のケース
+         * 1つのインタフェースを実装しているEnumの場合のケース
          * Enumを指定すると、オーバーライドされたメソッドを実装クラスから呼ぶ場合は使用許可となること。
-         * ただし、オーバーライドされていないInterfaceのメソッドは、使用不許可となること。
+         * ただし、オーバーライドされていないインタフェースのメソッドは、使用不許可となること。
          */
         @Test
         public void testIsPermittedEnumWithInterface() {
@@ -714,7 +714,7 @@ public class PublishedApisInfoTest {
          *   ・公開設定されたパッケージのクラス、サブパッケージも公開される
          * ・クラス単位で設定された場合
          *   ・公開されたクラスのメソッドはすべて公開される
-         *   ・内部クラス、抽象クラス、インターフェースに対しても普通のクラスと同じ動作をする
+         *   ・内部クラス、抽象クラス、インタフェースに対しても普通のクラスと同じ動作をする
          *   ・無名クラス内部は検知されない。
          *
          * @throws Exception エラーが発生した場合
@@ -744,7 +744,7 @@ public class PublishedApisInfoTest {
          * ・return文
          * ・catch文、finally文
          * ・継承
-         * ・インターフェース
+         * ・インタフェース
          * @throws Exception エラーが発生した場合
          */
         @Test
