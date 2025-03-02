@@ -2,10 +2,22 @@ package nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfa
 
 public class TwoInterfaceImple implements InterfaceFor1Interface, InterfaceFor2Interface {
 
-    public void test1InterfaceImple() {
+    @Override
+    public void interfaceMethod() {
     }
 
-    public void test2InterfaceImple() {
+    @Override
+    public void interfaceDefaultMethod() {
     }
 
+    @Override
+    public void interface2Method() {
+    }
+
+    @Override
+    public void interface2DefaultMethod() {
+    }
+
+    public void twoInterfaceImpleOnlyMethod() {
+    }
 }

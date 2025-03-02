@@ -14,4 +14,21 @@ public class SubInterfaceImple implements SubInterface {
     public void subUnpublishedInterfaceMethod() {
     }
 
+    // SuperInterfaceで定義されたメソッド
+    public void superInterfaceMethod() {
+    }
+
+    // SuperInterfaceでデフォルトメソッド定義され、SubInterfaceでオーバーライドされたメソッド
+    @Override
+    public void superInterfaceDefaultMethod() {
+    }
+
+    // SubInterfaceで定義されたメソッド
+    public void subInterfaceMethod() {
+    }
+
+    // 実装クラスのみで定義されたメソッド
+    public void impleOnlyMethod() {
+    }
+
 }

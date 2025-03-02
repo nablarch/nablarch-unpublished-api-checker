@@ -2,5 +2,11 @@ package nablarch.test.tool.findbugs.data.publishedapi.settings.data.java.interfa
 
 public interface InterfaceFor1Interface {
 
-    void test1InterfaceImple();
+    void interfaceMethod();
+
+    default void interfaceDefaultMethod() {
+    }
+
+    default void interfaceOnlyDefaultMethod() {
+    }
 }

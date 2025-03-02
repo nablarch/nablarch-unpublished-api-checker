@@ -5,4 +5,17 @@ public interface SubInterface extends SuperInterface {
     void subPublishedInterfaceMethod();
 
     void subUnpublishedInterfaceMethod();
+
+    // SubInterfaceImpleで実装されるメソッド
+    void subInterfaceMethod();
+
+    // SubInterfaceImpleでもオーバーライドされるメソッド
+    @Override
+    default void superInterfaceDefaultMethod() {
+    }
+
+    // SubInterfaceImpleでオーバーライドされないメソッド
+    default void subInterfaceOnlyDefaultMethod() {
+    }
+
 }
