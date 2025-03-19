@@ -8,6 +8,10 @@
   <artifactId>nablarch-unpublished-api-checker</artifactId>
   <version>1.0.1</version>
 
+  <name>${project.artifactId}</name>
+  <description>Checker for unpublished API in Nablarch Framework.</description>
+  <url>https://github.com/nablarch</url>
+
   <licenses>
     <license>
       <name>The Apache License, Version 2.0</name>
