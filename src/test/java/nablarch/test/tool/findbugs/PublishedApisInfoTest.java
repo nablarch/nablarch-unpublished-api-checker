@@ -31,9 +31,9 @@ import java.util.Comparator;
 import java.util.function.Consumer;
 import java.util.stream.StreamSupport;
 
-import static nablarch.test.Assertion.fail;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.fail;
 
 /**
  * {@link PublishedApisInfo}のテスト
@@ -1038,7 +1038,7 @@ public class PublishedApisInfoTest {
                     writer.write(formattedText);
                     writer.write("\r\n");
                 } catch (IOException e) {
-                    fail(e);
+                    fail(e.toString());
                 }
             };
         }
