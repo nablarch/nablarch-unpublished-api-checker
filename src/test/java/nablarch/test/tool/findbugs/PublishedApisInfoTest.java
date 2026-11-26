@@ -993,7 +993,7 @@ public class PublishedApisInfoTest {
                 DetectorFactory factory = detectorFactoryCollection.getFactory("MethodReturnCheck");
                 UserPreferences userPreferences = engine.getUserPreferences();
                 userPreferences.enableDetector(factory, false);
-            } ,path).getBugCollection();
+            }, UserPreferences.createDefaultUserPreferences(), path).getBugCollection();
 
 
             // BugCollectionのassertはテキストファイルに出力して期待されるテキストファイルとの検証を行っている。
