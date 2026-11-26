@@ -7,19 +7,18 @@ import edu.umd.cs.findbugs.DetectorFactoryCollection;
 import edu.umd.cs.findbugs.SourceLineAnnotation;
 import edu.umd.cs.findbugs.config.UserPreferences;
 import edu.umd.cs.findbugs.test.AnalysisRunner;
-import mockit.Expectations;
-import mockit.Mocked;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.AbnormalSuite;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.NormalSuite;
 import nablarch.test.tool.findbugs.PublishedApisInfoTest.UsageOfUnpublishedMethodDetector;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
+import org.junit.rules.TemporaryFolder;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -607,6 +606,9 @@ public class PublishedApisInfoTest {
      */
     public static class AbnormalSuite {
 
+        @Rule
+        public TemporaryFolder temporaryFolder = new TemporaryFolder();
+
         /**
          * 読み込むJavaクラスが見つからない場合
          */
@@ -676,18 +678,18 @@ public class PublishedApisInfoTest {
          * また、例外のメッセージから、設定の問題箇所を判断できること。
          */
         @Test
-        public void testReadConfigFiles_IOException(@Mocked final BufferedReader reader) throws IOException {
-            new Expectations() {{
-                reader.readLine();
-                result = new IOException();
-            }};
-            System.setProperty(CONFIG_FILE_PATH, "src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterface");
+        public void testReadConfigFiles_IOException() throws IOException {
+            // 設定ファイルとして読み込まれる名前(*.config)のディレクトリを置き、読み込み時に IOException を発生させる
+            File configDir = temporaryFolder.newFolder();
+            File unreadable = new File(configDir, "unreadable.config");
+            Assert.assertTrue(unreadable.mkdir());
+            System.setProperty(CONFIG_FILE_PATH, configDir.getPath());
             try {
                 PublishedApisInfo.readConfigFiles();
                 fail();
             } catch (RuntimeException e) {
                 assertThat(e.getMessage(), containsString("Couldn't read config file."));
-                assertThat(e.getMessage(), containsString(new File("src/test/java/nablarch/test/tool/findbugs/data/publishedapi/settings/subinterface").toString()));
+                assertThat(e.getMessage(), containsString(unreadable.toString()));
             }
         }
     }
